@@ -1,115 +1,133 @@
-# Windows Setup Guide
+<div align="center">
 
-This guide explains how to install, configure, run, and maintain the Local AI Agent on Windows.
+# 🪟 Windows Setup Guide
 
-## What This Project Includes
+### 💎 Premium install · configure · operate · recover playbook
 
-The repository provides:
+[![Windows](https://img.shields.io/badge/Windows-10%2F11-0078D6?style=for-the-badge&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
+[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Docker](https://img.shields.io/badge/Docker-Desktop-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Guide](https://img.shields.io/badge/Status-Ready-22C55E?style=for-the-badge)](#-quick-path)
 
-- a local CLI for operator checks and runtime status
-- a FastAPI service for orchestration and memory APIs
-- a Docker-first Qdrant memory backend
-- optional integrations for Telegram, Watchdog, and Playwright
+> 🚀 From zero to a running Local AI Agent with one-click launchers, healthchecks, backups, and a local admin panel.
 
-## Recommended System Requirements
+</div>
 
-- Windows 10 or Windows 11
-- Python 3.12 or newer
-- Git
-- Docker Desktop for the recommended Qdrant + API setup
-- PowerShell 5.1+ or PowerShell 7+
+---
 
-## One-File Windows Bootstrap
+## 🗺️ Quick Path
 
-The easiest way to set up the project is to run:
+| ⏱️ Step | 🔘 Action | 🌈 Result |
+|---|---|---|
+| 1️⃣ | `windows-bootstrap.cmd` | Install deps + prepare `.venv` / `.env` |
+| 2️⃣ | `start-agent.cmd` | Start Docker-first API + Qdrant |
+| 3️⃣ | `open-agent.cmd` | Open **http://127.0.0.1:8000/admin** |
+| 4️⃣ | `healthcheck-agent.cmd` | Confirm everything is green |
+
+> 🟢 **Recommended daily flow:** `start-agent.cmd` → `open-agent.cmd` → `status-agent.cmd`
+
+---
+
+## 🎁 What You Get
+
+| 🧩 Component | 💬 Description |
+|---|---|
+| 🖥️ CLI | Operator status / doctor / task runs |
+| 🌐 FastAPI | Orchestration + memory + metrics + admin UI |
+| 🧠 Qdrant memory | Docker-first vector memory backend |
+| 🔌 Integrations | Telegram · Watchdog · Playwright ready |
+
+---
+
+## 💻 System Requirements
+
+| ✅ Item | 📌 Minimum |
+|---|---|
+| 🪟 OS | Windows 10 / 11 |
+| 🐍 Python | 3.12+ |
+| 🐙 Git | any recent version |
+| 🐳 Docker Desktop | required for recommended mode |
+| ⚡ Shell | PowerShell 5.1+ or 7+ |
+
+---
+
+## 🪄 One-File Bootstrap
+
+### 🔥 Fastest start
 
 ```powershell
 .\windows-bootstrap.ps1 -UseDocker -RunTests
 ```
 
-Or by double-clicking:
+Or double-click:
 
 ```text
 windows-bootstrap.cmd
 ```
 
-For a simpler daily start in the recommended mode:
+Daily recommended mode:
 
 ```text
 start-agent.cmd
 ```
 
-For routine management:
+### 🧠 What bootstrap does
+
+1. 🔍 Detect Python 3.12
+2. 🧪 Create `.venv` if missing
+3. ⬆️ Upgrade `pip`
+4. 📦 Install `.[dev,integrations]`
+5. 📝 Create `.env` from `.env.example`
+6. ✅ Run CLI status check
+7. 🧪 Optionally run tests
+8. 🐳 Optionally start Docker services
+9. 🌐 Optionally start local FastAPI
+
+> 💡 Bootstrap also supports interactive mode and waits for API readiness after Docker start.
+
+---
+
+## 🎛️ Bootstrap Modes
+
+| # | 🎯 Mode | 🧾 Command |
+|---|---|---|
+| 1 | 📦 Setup only | `.\windows-bootstrap.ps1` |
+| 2 | 🧪 Setup + tests | `.\windows-bootstrap.ps1 -RunTests` |
+| 3 | 🐳 Docker-first | `.\windows-bootstrap.ps1 -UseDocker -RunTests` |
+| 4 | 🎭 Playwright browsers | `.\windows-bootstrap.ps1 -InstallPlaywrightBrowsers` |
+| 5 | 🌐 Local API | `.\windows-bootstrap.ps1 -RunApi` |
+| 6 | 🛠️ Auto-install tools | `.\windows-bootstrap.ps1 -InstallMissingTools` |
+
+> ⚠️ `-InstallMissingTools` may require administrator approval (winget).
+
+---
+
+## 🕹️ One-Click Launchers
+
+| 🔘 Launcher | 🌈 Color cue | 📌 Purpose |
+|---|---|---|
+| `start-agent.cmd` | 🟢 Start | Recommended Docker-first launch |
+| `status-agent.cmd` | 🔵 Status | Compose + API status |
+| `restart-agent.cmd` | 🟡 Restart | Rebuild & restart |
+| `stop-agent.cmd` | 🔴 Stop | Stop services |
+| `logs-agent.cmd` | 🟣 Logs | Stream Docker logs |
+| `open-agent.cmd` | 🩵 UI | Open admin panel |
+| `healthcheck-agent.cmd` | ❤️ Health | Full readiness validation |
+| `configure-env.cmd` | ⚙️ Config | Interactive `.env` wizard |
+| `backup-agent.cmd` | 💾 Backup | Create recovery zip |
+| `restore-agent.cmd` | ♻️ Restore | Restore runtime / `.env` |
+| `update-agent.cmd` | ⬆️ Update | Refresh Python environment |
 
 ```text
+start-agent.cmd
 status-agent.cmd
-restart-agent.cmd
-stop-agent.cmd
-logs-agent.cmd
 open-agent.cmd
 healthcheck-agent.cmd
-configure-env.cmd
-backup-agent.cmd
-update-agent.cmd
 ```
 
-### What the Bootstrap Script Does
+---
 
-`windows-bootstrap.ps1` will:
-
-1. detect Python 3.12
-2. create `.venv` if it does not exist
-3. upgrade `pip`
-4. install the project with `.[dev,integrations]`
-5. create `.env` from `.env.example` if needed
-6. run `python -m apps.cli.main status`
-7. optionally run tests
-8. optionally start Docker services
-9. optionally start the local FastAPI server
-
-## Bootstrap Script Modes
-
-### 1. Install dependencies and prepare the environment
-
-```powershell
-.\windows-bootstrap.ps1
-```
-
-### 2. Install dependencies and run the test suite
-
-```powershell
-.\windows-bootstrap.ps1 -RunTests
-```
-
-### 3. Use Docker for Qdrant and API
-
-```powershell
-.\windows-bootstrap.ps1 -UseDocker -RunTests
-```
-
-### 4. Install Playwright browser binaries
-
-```powershell
-.\windows-bootstrap.ps1 -InstallPlaywrightBrowsers
-```
-
-### 5. Start the API locally without Docker
-
-```powershell
-.\windows-bootstrap.ps1 -RunApi
-```
-
-### 6. Try automatic installation of missing tools via winget
-
-```powershell
-.\windows-bootstrap.ps1 -InstallMissingTools
-```
-
-This mode may require administrator approval depending on your machine policy.
-
-## Manual Installation
-
-If you prefer to install everything manually:
+## 🛠️ Manual Installation
 
 ```powershell
 python -m venv .venv
@@ -119,72 +137,56 @@ Copy-Item .env.example .env
 .\.venv\Scripts\python.exe -m pytest
 ```
 
-## Configuration
+---
 
-The project reads settings from environment variables or `.env`.
+## ⚙️ Configuration
 
-Start by copying:
+Start from template:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-Then adjust the values in `.env` as needed.
-
-### Important Variables
-
-- `LOCAL_AI_AGENT_ENV`: environment name, usually `dev`
-- `LOCAL_AI_AGENT_APP_NAME`: application name
-- `LOCAL_AI_AGENT_MODEL_PRIMARY`: primary model identifier
-- `LOCAL_AI_AGENT_MODEL_ROUTER`: router model identifier
-- `LOCAL_AI_AGENT_QDRANT_URL`: Qdrant base URL
-- `LOCAL_AI_AGENT_QDRANT_COLLECTION`: Qdrant collection name
-- `LOCAL_AI_AGENT_MEMORY_STORE_PATH`: fallback local JSON memory store path
-- `LOCAL_AI_AGENT_DOWNLOADS_WATCH_PATH`: Windows path watched by filesystem automation
-- `LOCAL_AI_AGENT_TELEGRAM_BOT_TOKEN`: optional Telegram bot token
-- `LOCAL_AI_AGENT_TELEGRAM_ADMIN_CHAT_ID`: optional Telegram admin chat id
-
-## Running the Project
-
-### One-click launchers
-
-- `start-agent.cmd`: starts the recommended Docker-first mode
-- `status-agent.cmd`: shows `docker compose ps` and tries to fetch the API status endpoint
-- `restart-agent.cmd`: rebuilds and restarts the Docker services, then prints the API status payload
-- `stop-agent.cmd`: stops the Docker services
-- `logs-agent.cmd`: streams Docker logs for the API and Qdrant
-- `open-agent.cmd`: opens the local admin panel in the browser
-- `healthcheck-agent.cmd`: validates local readiness and critical endpoints
-- `configure-env.cmd`: opens the interactive environment configuration wizard
-- `backup-agent.cmd`: creates a local backup zip
-- `restore-agent.cmd <archive.zip>`: restores runtime state and `.env` from a backup
-- `update-agent.cmd`: refreshes the Python environment and performs a smoke test
-
-Examples:
+Or use the wizard:
 
 ```text
-start-agent.cmd
-status-agent.cmd
-restart-agent.cmd
-stop-agent.cmd
-logs-agent.cmd
-open-agent.cmd
-healthcheck-agent.cmd
+configure-env.cmd
 ```
 
-### CLI status check
+### 🔑 Important variables
+
+| 🏷️ Variable | 🎯 Meaning |
+|---|---|
+| `LOCAL_AI_AGENT_ENV` | Environment (`dev`) |
+| `LOCAL_AI_AGENT_APP_NAME` | App name |
+| `LOCAL_AI_AGENT_MODEL_PRIMARY` | Primary model id |
+| `LOCAL_AI_AGENT_MODEL_ROUTER` | Router model id |
+| `LOCAL_AI_AGENT_QDRANT_URL` | Qdrant base URL |
+| `LOCAL_AI_AGENT_QDRANT_COLLECTION` | Collection name |
+| `LOCAL_AI_AGENT_RUNTIME_LOG_PATH` | Rotating runtime log |
+| `LOCAL_AI_AGENT_BACKUP_DIR` | Backup directory |
+| `LOCAL_AI_AGENT_ALLOWED_EXECUTE_ACTIONS_RAW` | Execute allowlist |
+| `LOCAL_AI_AGENT_DOWNLOADS_WATCH_PATH` | FS watch path |
+| `LOCAL_AI_AGENT_TELEGRAM_BOT_TOKEN` | Optional Telegram token |
+| `LOCAL_AI_AGENT_TELEGRAM_ADMIN_CHAT_ID` | Optional admin chat |
+
+---
+
+## 🚦 Running the Project
+
+### 🖥️ CLI status
 
 ```powershell
 .\.venv\Scripts\python.exe -m apps.cli.main status
 ```
 
-### Local API without Docker
+### 🌐 Local API (no Docker)
 
 ```powershell
 .\.venv\Scripts\python.exe -m uvicorn apps.api.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-### Docker-first API and Qdrant
+### 🐳 Docker-first API + Qdrant
 
 ```powershell
 cd infra
@@ -194,50 +196,48 @@ docker compose up --build -d qdrant api
 Verify:
 
 ```powershell
-.\.venv\Scripts\python.exe -c "import json, urllib.request; print(json.dumps(json.load(urllib.request.urlopen('http://127.0.0.1:8000/status')), indent=2))"
+Invoke-RestMethod http://127.0.0.1:8000/status | ConvertTo-Json -Depth 8
 ```
 
-### Local Admin Panel
-
-Open:
+### 🖥️ Admin panel
 
 ```text
 open-agent.cmd
 ```
 
-Or navigate directly to:
+Direct URL:
 
 ```text
 http://127.0.0.1:8000/admin
 ```
 
-## API Endpoints
+---
 
-Main endpoints currently include:
+## 🌐 API Map
 
-- `GET /health`
-- `GET /status`
-- `GET /metrics`
-- `GET /tasks/recent`
-- `GET /admin`
-- `POST /tasks/run`
-- `GET /memory`
-- `GET /memory/search`
-- `POST /memory`
-- `PATCH /memory/{memory_id}`
-- `DELETE /memory/{memory_id}`
+| 🎨 Method | 🔗 Path | 📌 Purpose |
+|---|---|---|
+| 💚 GET | `/health` | Liveness |
+| 📡 GET | `/status` | Runtime snapshot |
+| 📈 GET | `/metrics` | Counters / uptime |
+| 🗂️ GET | `/tasks/recent` | Recent tasks |
+| 🖥️ GET | `/admin` | Local dashboard |
+| 🚀 POST | `/tasks/run` | Run task |
+| 🧠 GET | `/memory` | List / filter / paginate |
+| 🔎 GET | `/memory/search` | Search memory |
+| ➕ POST | `/memory` | Create memory |
+| 🩹 PATCH | `/memory/{id}` | Update memory |
+| 🗑️ DELETE | `/memory/{id}` | Delete memory |
 
-### Memory list with pagination and filtering
-
-Example:
+### 🧠 Memory pagination example
 
 ```powershell
 Invoke-RestMethod "http://127.0.0.1:8000/memory?q=style&kind=preference&limit=10&offset=0"
 ```
 
-## Quality Checks
+---
 
-Run all core checks with:
+## ✅ Quality Checks
 
 ```powershell
 .\.venv\Scripts\python.exe -m ruff check .
@@ -245,105 +245,125 @@ Run all core checks with:
 .\.venv\Scripts\python.exe -m pytest
 ```
 
-## Backup, Restore, and Update
+| 🧪 Gate | 🌈 Badge |
+|---|---|
+| Ruff | 🟠 lint clean |
+| mypy | 🔵 strict types |
+| pytest | 🟢 passing |
+| coverage | 🟣 95%+ |
 
-### Create backup
+---
 
-```text
-backup-agent.cmd
-```
+## 💾 Backup · Restore · Update
 
-### Restore from backup
+| 🔘 Action | 🧾 Command |
+|---|---|
+| 💾 Create backup | `backup-agent.cmd` |
+| ♻️ Restore backup | `restore-agent.cmd backups\local-ai-agent-backup-YYYYMMDD-HHMMSS.zip` |
+| ⬆️ Update env | `update-agent.cmd` |
+| ❤️ Healthcheck | `healthcheck-agent.cmd` |
 
-```text
-restore-agent.cmd backups\local-ai-agent-backup-YYYYMMDD-HHMMSS.zip
-```
+> ⚠️ Restore asks for explicit confirmation (`RESTORE`) before overwriting runtime / `.env`.
 
-### Refresh the local environment
+---
 
-```text
-update-agent.cmd
-```
+## 🛡️ Safety & Observability
 
-### Run a full local healthcheck
+### 🔐 Governance
 
-```text
-healthcheck-agent.cmd
-```
+- 🧾 Secret fields are redacted in audit logs
+- ✅ Execute actions outside allowlist require approval
+- 🧷 Allowlist via `LOCAL_AI_AGENT_ALLOWED_EXECUTE_ACTIONS_RAW`
+- 💾 Backups live under `LOCAL_AI_AGENT_BACKUP_DIR`
 
-## Safety and Local Governance
+### 📊 Observability
 
-- common secret fields are redacted in the audit log
-- execute-mode actions outside the configured allowlist require approval
-- the execute allowlist is configured through `LOCAL_AI_AGENT_ALLOWED_EXECUTE_ACTIONS_RAW`
-- backups are stored under `LOCAL_AI_AGENT_BACKUP_DIR`
+| 🧭 Signal | 📍 Location |
+|---|---|
+| 🪵 Runtime logs | `LOCAL_AI_AGENT_RUNTIME_LOG_PATH` |
+| 🧾 Audit log | `LOCAL_AI_AGENT_AUDIT_LOG_PATH` |
+| 📈 Metrics | http://127.0.0.1:8000/metrics |
+| 🗂️ Recent tasks | http://127.0.0.1:8000/tasks/recent |
 
-## Observability
+---
 
-- runtime log file: `LOCAL_AI_AGENT_RUNTIME_LOG_PATH`
-- audit log file: `LOCAL_AI_AGENT_AUDIT_LOG_PATH`
-- metrics endpoint: `http://127.0.0.1:8000/metrics`
-- recent tasks endpoint: `http://127.0.0.1:8000/tasks/recent`
+## 🩹 Troubleshooting
 
-## Troubleshooting
-
-### PowerShell blocks script execution
-
-Run:
+### 🚫 PowerShell blocks scripts
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\windows-bootstrap.ps1
 ```
 
-### Docker is installed but containers do not start
+### 🐳 Docker installed but containers fail
 
-- make sure Docker Desktop is running
-- retry `docker compose up --build -d qdrant api`
-- inspect logs with:
+- ✅ Ensure Docker Desktop is running
+- 🔁 Retry `docker compose up --build -d qdrant api`
+- 📜 Inspect logs:
 
 ```powershell
 cd infra
 docker compose logs qdrant api
 ```
 
-### Python is not found
+Or:
+
+```text
+logs-agent.cmd
+```
+
+### 🐍 Python not found
 
 - install Python 3.12 manually, or
 - run `.\windows-bootstrap.ps1 -InstallMissingTools`
 
-### Qdrant is unavailable
+### 🧠 Qdrant unavailable
 
-The application will fall back to the JSON memory store when Qdrant cannot be reached.
+> 🟡 App automatically falls back to the JSON memory store.
 
-## Project Files Added for Windows Users
+---
 
-- `windows-bootstrap.ps1`: main setup and run script
-- `windows-bootstrap.cmd`: double-click launcher for the PowerShell bootstrap
-- `start-agent.cmd`: quick launcher for the recommended Docker-first mode
-- `status-agent.cmd`: quick status check for Docker services and API
-- `restart-agent.cmd`: one-click rebuild/restart helper
-- `stop-agent.cmd`: one-click stop helper
-- `logs-agent.cmd`: Docker logs helper
-- `open-agent.cmd`: admin UI launcher
-- `healthcheck-agent.cmd`: full local readiness checker
-- `configure-env.cmd`: environment wizard
-- `backup-agent.cmd`: backup helper
-- `restore-agent.cmd`: restore helper
-- `update-agent.cmd`: dependency refresh helper
-- `CHANGELOG.md`: release history
-- `VERSION`: release version file
-- `docs/RELEASE_CHECKLIST.md`: release checklist
-- `docs/WINDOWS_SETUP_GUIDE.md`: detailed Windows documentation
-- `LICENSE`: project license with author support notice
-- `NOTICE`: author attribution and support information
+## 📁 Windows File Pack
 
-## License and Author Support
+| 📁 File | 🎯 Role |
+|---|---|
+| `windows-bootstrap.ps1` | Main bootstrap engine |
+| `windows-bootstrap.cmd` | Double-click bootstrap |
+| `start-agent.cmd` | Daily start |
+| `status-agent.cmd` | Status |
+| `restart-agent.cmd` | Restart |
+| `stop-agent.cmd` | Stop |
+| `logs-agent.cmd` | Logs |
+| `open-agent.cmd` | Admin UI |
+| `healthcheck-agent.cmd` | Health |
+| `configure-env.cmd` | Env wizard |
+| `backup-agent.cmd` | Backup |
+| `restore-agent.cmd` | Restore |
+| `update-agent.cmd` | Update |
+| `CHANGELOG.md` | Release notes |
+| `VERSION` | Version stamp |
+| `docs/RELEASE_CHECKLIST.md` | Ship checklist |
+| `LICENSE` · `NOTICE` | License + support |
 
-This project includes a `LICENSE` file and a `NOTICE` file that embed the requested author attribution and support information for:
+---
 
-- Pankov Sergey Vladimirovish
+## 💖 License & Author Support
 
-Support details:
+**Pankov Sergey Vladimirovish**
 
-- USDT (ERC20): `0x587d0B8B786BC8254862dFDd632E00C81752B50a`
-- BTC: `1Hehwq6T9E6JhWu1u7e7PHAqxmQwQXWA9m`
+I am self-taught and really enjoy exploring the field of IT. I would be grateful for any support for my future work in this area; advancing requires modern equipment that I unfortunately cannot afford.
+
+| 🪙 Asset | 📬 Address |
+|---|---|
+| 💎 USDT (ERC20) | `0x587d0B8B786BC8254862dFDd632E00C81752B50a` |
+| 🟠 BTC | `1Hehwq6T9E6JhWu1u7e7PHAqxmQwQXWA9m` |
+
+<div align="center">
+
+### 🏁 You're ready
+
+**Bootstrap → Start → Open Admin → Healthcheck**
+
+🟢 Have a smooth local AI day!
+
+</div>

@@ -1,103 +1,78 @@
-# Local AI Agent
+<div align="center">
 
-Windows-first local autonomous AI agent platform designed as a safe Digital Twin runtime.
+# 🧠 Local AI Agent
 
-## License
+### ⚡ Windows-first · Local-first · Safety-first Digital Twin Runtime
 
-This repository is licensed under the MIT License. See `LICENSE` and `NOTICE` for author attribution and support information for Pankov Sergey Vladimirovish.
+[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Qdrant](https://img.shields.io/badge/Qdrant-Memory-DC244C?style=for-the-badge&logo=qdrant&logoColor=white)](https://qdrant.tech/)
+[![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](./LICENSE)
+[![Version](https://img.shields.io/badge/Version-0.2.0-F59E0B?style=for-the-badge)](./VERSION)
 
-## Goals
+[![Ruff](https://img.shields.io/badge/Ruff-Clean-✓-111827?style=flat-square&labelColor=F97316)](https://docs.astral.sh/ruff/)
+[![mypy](https://img.shields.io/badge/mypy-strict-✓-111827?style=flat-square&labelColor=3B82F6)](https://mypy-lang.org/)
+[![pytest](https://img.shields.io/badge/pytest-passing-✓-111827?style=flat-square&labelColor=10B981)](https://docs.pytest.org/)
+[![Coverage](https://img.shields.io/badge/coverage-95%25+-✓-111827?style=flat-square&labelColor=8B5CF6)](./pyproject.toml)
 
-- Reliable task orchestration with typed contracts
-- Safety-first local automation with auditability
-- Sandbox execution for generated code
-- Memory-driven personalization and preference retrieval
-- Extensible capabilities for files, web, vision, code, and messaging
+> 💎 **Premium local autonomy** — orchestrate tasks, remember preferences, automate Windows workflows, and keep every side effect under policy control.
 
-## Monorepo Layout
+[📖 Setup Guide](./docs/WINDOWS_SETUP_GUIDE.md) · [🧭 Release Checklist](./docs/RELEASE_CHECKLIST.md) · [🧾 Changelog](./CHANGELOG.md) · [🔐 Threat Model](./docs/security/threat-model.md)
 
-- `apps/cli` - operator-facing command line interface
-- `apps/api` - FastAPI entrypoint for local automation and orchestration
-- `services/orchestrator` - runtime state machine and capability execution
-- `packages/core` - domain models and shared contracts
-- `packages/config` - environment-aware settings and configuration loading
-- `infra` - local infrastructure definitions
-- `docs/adr` - architecture decisions
-- `tests` - unit and integration tests
+</div>
 
-## Quality Standards
+---
 
-- Python 3.12+
-- Full type hints on public contracts
-- `ruff`, `mypy`, `pytest`, coverage, and pre-commit hooks
-- Structured logging with correlation IDs
-- Safety gates for side effects
+## ✨ Why Local AI Agent?
 
-## Quick Start
+| 🎯 Capability | 💬 What you get |
+|---|---|
+| 🧩 **Typed orchestration** | Reliable task lifecycle with Pydantic contracts |
+| 🛡️ **Safety layer** | Audit trail, dry-run, allowlist, approval gates |
+| 🧪 **Sandbox execution** | Isolated runs for generated code |
+| 🧠 **Memory & Digital Twin** | Preference retrieval via JSON or Qdrant |
+| 🛰️ **Omnichannel ready** | CLI, HTTP API, Telegram / Watchdog / Playwright adapters |
 
-### Windows One-File Bootstrap
+---
 
-```powershell
-.\windows-bootstrap.ps1 -UseDocker -RunTests
-```
+## 🚀 Quick Start
 
-Double-click alternative:
-
-```text
-windows-bootstrap.cmd
-```
-
-Fast daily start:
+### 🥇 Recommended — one click on Windows
 
 ```text
 start-agent.cmd
 ```
 
-Management helpers:
+Then open the admin panel:
 
 ```text
-status-agent.cmd
-restart-agent.cmd
-stop-agent.cmd
-logs-agent.cmd
 open-agent.cmd
-healthcheck-agent.cmd
-configure-env.cmd
-backup-agent.cmd
-restore-agent.cmd <backup.zip>
-update-agent.cmd
 ```
 
-Detailed setup and usage documentation is available in `docs/WINDOWS_SETUP_GUIDE.md`.
+> 🟢 **Tip:** first install with `windows-bootstrap.cmd` or  
+> `.\windows-bootstrap.ps1 -UseDocker -RunTests`
 
-## Operations
+### 🧰 Full bootstrap
 
-- `http://127.0.0.1:8000/admin` provides a minimal local admin panel
-- `GET /metrics` exposes local runtime counters
-- `GET /tasks/recent` returns recent persisted tasks
-- `healthcheck-agent.cmd` validates the local environment and API readiness
-- `backup-agent.cmd` and `restore-agent.cmd` provide local recovery helpers
-- `update-agent.cmd` refreshes the local Python environment safely
+```powershell
+.\windows-bootstrap.ps1 -UseDocker -RunTests
+```
 
-## Release Files
-
-- `VERSION`
-- `CHANGELOG.md`
-- `docs/RELEASE_CHECKLIST.md`
-- `LICENSE`
-- `NOTICE`
-
-### Recommended: Docker-First
+### 🐳 Docker-first (manual)
 
 ```powershell
 cd infra
 docker compose up --build -d qdrant api
-python -c "import json, urllib.request; print(json.dumps(json.load(urllib.request.urlopen('http://127.0.0.1:8000/status')), indent=2))"
 ```
 
-This is the recommended local setup because the API can reach `qdrant` over the Docker network even when direct host access to the Qdrant REST port is unreliable.
+Verify status:
 
-### Local Dev Without Docker
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/status | ConvertTo-Json -Depth 8
+```
+
+### 💻 Local Python (without Docker)
 
 ```powershell
 python -m venv .venv
@@ -108,6 +83,131 @@ python -m apps.cli.main status
 uvicorn apps.api.main:app --reload
 ```
 
-## Current Status
+---
 
-This repository now provides a tested local foundation plus a real HTTP entrypoint, Docker-first Qdrant-backed memory flow, and optional integration boundaries for Watchdog, Telegram, and Playwright.
+## 🎮 One-Click Control Center
+
+| 🔘 Action | 📁 Launcher | 🌈 Purpose |
+|---|---|---|
+| ▶️ Start | `start-agent.cmd` | Docker-first recommended mode |
+| 📊 Status | `status-agent.cmd` | Containers + API status |
+| 🔄 Restart | `restart-agent.cmd` | Rebuild & restart services |
+| ⏹️ Stop | `stop-agent.cmd` | Stop API + Qdrant |
+| 📜 Logs | `logs-agent.cmd` | Live Docker logs |
+| 🖥️ Admin UI | `open-agent.cmd` | Open local dashboard |
+| ❤️ Health | `healthcheck-agent.cmd` | Full readiness check |
+| ⚙️ Configure | `configure-env.cmd` | Interactive `.env` wizard |
+| 💾 Backup | `backup-agent.cmd` | Zip runtime + config |
+| ♻️ Restore | `restore-agent.cmd` | Restore from backup |
+| ⬆️ Update | `update-agent.cmd` | Refresh dependencies |
+
+📘 Detailed Windows playbook: [`docs/WINDOWS_SETUP_GUIDE.md`](./docs/WINDOWS_SETUP_GUIDE.md)
+
+---
+
+## 🧱 Monorepo Layout
+
+```text
+📦 AI_LOCAL_AGENT
+┣ 📂 apps/
+┃ ┣ 🖥️ cli/          operator CLI
+┃ ┗ 🌐 api/          FastAPI entrypoint + admin UI
+┣ 📂 services/
+┃ ┣ 🎛️ orchestrator/ runtime state machine
+┃ ┣ 🧠 memory/       JSON + Qdrant backends
+┃ ┣ 🐝 swarm/        multi-agent routing
+┃ ┗ 📡 integrations/ Telegram / Watchdog / Playwright
+┣ 📂 packages/       typed contracts & safety
+┣ 📂 infra/          Docker Compose + API image
+┣ 📂 docs/           guides, ADR, runbooks
+┗ 📂 tests/          quality gates
+```
+
+---
+
+## 🌐 Live Surfaces
+
+| 🔗 Endpoint | 🎨 Role |
+|---|---|
+| `GET /health` | 💚 Liveness |
+| `GET /status` | 📡 Runtime snapshot |
+| `GET /metrics` | 📈 Counters & uptime |
+| `GET /admin` | 🖥️ Local management panel |
+| `GET /tasks/recent` | 🗂️ Recent tasks |
+| `GET/POST/PATCH/DELETE /memory` | 🧠 Memory CRUD + filters |
+| `POST /tasks/run` | 🚀 Run orchestrator task |
+
+Admin panel: **http://127.0.0.1:8000/admin**
+
+---
+
+## ✅ Quality Standards
+
+- 🐍 Python **3.12+**
+- 🧬 Full type hints on public contracts
+- 🧹 `ruff` · 🔎 `mypy` · 🧪 `pytest` · 📊 coverage · 🪝 pre-commit
+- 🪵 Structured logging with correlation IDs
+- 🛡️ Safety gates for side effects
+
+```powershell
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m mypy .
+.\.venv\Scripts\python.exe -m pytest
+```
+
+---
+
+## 🔐 Safety & Governance
+
+| 🛡️ Control | 📌 Behavior |
+|---|---|
+| 🧾 Audit log | Append-only JSONL with secret redaction |
+| ✅ Allowlist | Execute actions limited via env config |
+| ✋ Approvals | Destructive / privileged actions require approval |
+| 💾 Backups | Local zip recovery under `backups/` |
+
+---
+
+## 📦 Release Pack
+
+| 📁 File | 🧭 Purpose |
+|---|---|
+| `VERSION` | 🏷️ Current release |
+| `CHANGELOG.md` | 📰 User-visible history |
+| `docs/RELEASE_CHECKLIST.md` | ✅ Ship checklist |
+| `LICENSE` · `NOTICE` | ⚖️ License + author support |
+
+---
+
+## 💖 Support the Author
+
+**Pankov Sergey Vladimirovish**
+
+I am self-taught and really enjoy exploring the field of IT. I would be grateful for any support for my future work in this area; advancing requires modern equipment that I unfortunately cannot afford.
+
+| 🪙 Network | 📬 Address |
+|---|---|
+| 💎 USDT (ERC20) | `0x587d0B8B786BC8254862dFDd632E00C81752B50a` |
+| 🟠 BTC | `1Hehwq6T9E6JhWu1u7e7PHAqxmQwQXWA9m` |
+
+📄 Full license text: [`LICENSE`](./LICENSE) · [`NOTICE`](./NOTICE)
+
+---
+
+## 🏁 Current Status
+
+🟢 **Production-ready local foundation** with:
+
+- real HTTP API
+- Docker-first Qdrant memory path
+- Windows one-click ops suite
+- admin UI + metrics
+- optional Telegram / Watchdog / Playwright boundaries
+
+<div align="center">
+
+**Built for powerful Windows machines · Runs locally on your hardware · Learns with you**
+
+⭐ If this project helps you — star the repo and share it!
+
+</div>
