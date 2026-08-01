@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 import shutil
 import subprocess
@@ -7,6 +8,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
+
+LOGGER = logging.getLogger(__name__)
 
 
 class CodingAgentName(StrEnum):
@@ -64,6 +67,7 @@ CODING_GOAL_KEYWORDS: tuple[str, ...] = (
     "open pr",
 )
 
+
 @dataclass(frozen=True)
 class CodingAgentInvokeResult:
     agent: str
@@ -85,9 +89,21 @@ class CodingAgentInvokeResult:
             "error": self.error,
         }
 
+    @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> CodingAgentInvokeResult:
+        return cls(
+            agent=str(payload.get("agent") or ""),
+            command=[str(item) for item in (payload.get("command") or [])],
+            exit_code=int(payload.get("exit_code") or 1),
+            stdout=str(payload.get("stdout") or ""),
+            stderr=str(payload.get("stderr") or ""),
+            success=bool(payload.get("success")),
+            error=None if payload.get("error") in (None, "") else str(payload.get("error")),
+        )
+
 
 class CodingAgentsAdapter:
-    """Discover and invoke local Ollama-launched coding CLIs non-interactively."""
+    """Discover and invoke coding CLIs locally or via the Docker coding sidecar."""
 
     def __init__(
         self,
@@ -98,6 +114,8 @@ class CodingAgentsAdapter:
         enabled: bool = True,
         which: Any | None = None,
         runner: Any | None = None,
+        remote_url: str | None = None,
+        http_client: Any | None = None,
     ) -> None:
         self._default_agent = (default_agent or "auto").strip().lower()
         self._model = model
@@ -105,12 +123,53 @@ class CodingAgentsAdapter:
         self._enabled = enabled
         self._which = which or shutil.which
         self._runner = runner or subprocess.run
+        cleaned = (remote_url or "").strip().rstrip("/")
+        self._remote_url = cleaned or None
+        self._http_client = http_client
+        self._remote_agents_cache: dict[str, Any] | None = None
 
     @property
     def enabled(self) -> bool:
         return self._enabled
 
+    @property
+    def remote_url(self) -> str | None:
+        return self._remote_url
+
+    def _http(self) -> Any:
+        if self._http_client is not None:
+            return self._http_client
+        import httpx
+
+        self._http_client = httpx.Client(timeout=self._timeout_seconds + 30.0)
+        return self._http_client
+
+    def _fetch_remote_agents(self, *, force: bool = False) -> dict[str, Any]:
+        if self._remote_url is None:
+            return {}
+        if self._remote_agents_cache is not None and not force:
+            return self._remote_agents_cache
+        response = self._http().get(f"{self._remote_url}/agents")
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload, dict):
+            raise RuntimeError("Coding sidecar /agents returned non-object JSON")
+        self._remote_agents_cache = payload
+        return payload
+
     def resolve_binary(self, agent: CodingAgentName | str) -> str | None:
+        if self._remote_url is not None:
+            name = CodingAgentName(agent).value
+            try:
+                remote = self._fetch_remote_agents()
+            except Exception:  # noqa: BLE001 - treat remote errors as unavailable
+                LOGGER.debug("Coding sidecar agents lookup failed", exc_info=True)
+                return None
+            info = (remote.get("agents") or {}).get(name) or {}
+            path = info.get("path")
+            if info.get("installed") and path:
+                return str(path)
+            return None
         name = CodingAgentName(agent)
         return self._which(name.value)
 
@@ -213,6 +272,15 @@ class CodingAgentsAdapter:
         model: str | None = None,
     ) -> CodingAgentInvokeResult:
         name = CodingAgentName(agent)
+        if self._remote_url is not None:
+            return self._invoke_remote(
+                name,
+                prompt,
+                cwd=cwd,
+                timeout=timeout,
+                model=model,
+            )
+
         try:
             command = self.build_command(name, prompt, model=model)
         except FileNotFoundError as exc:
@@ -271,7 +339,88 @@ class CodingAgentsAdapter:
             error=None if completed.returncode == 0 else (stderr.strip() or "non-zero exit"),
         )
 
+    def _invoke_remote(
+        self,
+        agent: CodingAgentName,
+        prompt: str,
+        *,
+        cwd: str | Path | None,
+        timeout: float | None,
+        model: str | None,
+    ) -> CodingAgentInvokeResult:
+        assert self._remote_url is not None
+        body: dict[str, Any] = {
+            "prompt": prompt,
+            "agent": agent.value,
+            "model": model or self._model,
+        }
+        if cwd is not None:
+            body["cwd"] = str(cwd)
+        if timeout is not None:
+            body["timeout"] = timeout
+        try:
+            response = self._http().post(
+                f"{self._remote_url}/run",
+                json=body,
+                timeout=(timeout if timeout is not None else self._timeout_seconds) + 30.0,
+            )
+            if response.status_code >= 400:
+                detail = response.text
+                try:
+                    payload = response.json()
+                    detail = str(payload.get("detail") or payload)
+                except Exception:  # noqa: BLE001
+                    pass
+                return CodingAgentInvokeResult(
+                    agent=agent.value,
+                    command=[],
+                    exit_code=response.status_code,
+                    stdout="",
+                    stderr=detail,
+                    success=False,
+                    error=detail,
+                )
+            payload = response.json()
+            if not isinstance(payload, dict):
+                raise RuntimeError("Coding sidecar /run returned non-object JSON")
+            return CodingAgentInvokeResult.from_dict(payload)
+        except Exception as exc:  # noqa: BLE001 - surface transport failures
+            LOGGER.exception("Coding sidecar invoke failed")
+            return CodingAgentInvokeResult(
+                agent=agent.value,
+                command=[],
+                exit_code=1,
+                stdout="",
+                stderr=str(exc),
+                success=False,
+                error=f"Coding sidecar error: {exc}",
+            )
+
     def readiness(self) -> dict[str, Any]:
+        if self._remote_url is not None:
+            try:
+                payload = dict(self._fetch_remote_agents(force=True))
+            except Exception as exc:  # noqa: BLE001
+                LOGGER.exception("Coding sidecar readiness failed")
+                return {
+                    "enabled": self._enabled,
+                    "default": self._default_agent,
+                    "model": self._model,
+                    "timeout_seconds": self._timeout_seconds,
+                    "selected": None,
+                    "available": [],
+                    "agents": {},
+                    "provider": "docker-sidecar",
+                    "runtime": "docker-sidecar",
+                    "remote_url": self._remote_url,
+                    "error": str(exc),
+                }
+            payload.setdefault("provider", "docker-sidecar")
+            payload["runtime"] = "docker-sidecar"
+            payload["remote_url"] = self._remote_url
+            payload["enabled"] = self._enabled and bool(payload.get("enabled", True))
+            return payload
+
         agents: dict[str, Any] = {}
         for agent in CodingAgentName:
             path = self.resolve_binary(agent)
@@ -290,6 +439,7 @@ class CodingAgentsAdapter:
             "available": [agent.value for agent in self.available_agents()],
             "agents": agents,
             "provider": "ollama-launch",
+            "runtime": "local",
         }
 
 

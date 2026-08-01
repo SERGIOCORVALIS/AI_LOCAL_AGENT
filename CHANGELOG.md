@@ -15,6 +15,7 @@ All notable product changes live here.
 
 ### Added
 
+- Docker `coding` sidecar (`infra/coding.Dockerfile`, `apps/coding`) with Node CLIs (codex/opencode/droid); API remote mode via `LOCAL_AI_AGENT_CODING_AGENTS_URL`
 - Official Local AI Agent brand mark (`assets/brand/local-ai-agent.png`) in admin UI, README, and docs
 - Luxury admin panel SPA (`/admin`) with left nav, agent chat dialog, stack views, settings dialogs
 - `GET/PUT /settings` persists allowlisted keys to `.env` (restart required; secrets masked)

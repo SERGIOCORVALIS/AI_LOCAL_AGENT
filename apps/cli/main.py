@@ -48,6 +48,7 @@ def status() -> None:
         model=(settings.coding_agent_model or agents.resolved.primary),
         timeout_seconds=settings.coding_agent_timeout_seconds,
         enabled=settings.coding_agents_enabled,
+        remote_url=settings.coding_agents_url,
     )
     payload = {
         "app_name": settings.app_name,
@@ -105,6 +106,7 @@ def doctor() -> None:
         model=(settings.coding_agent_model or agents.resolved.primary),
         timeout_seconds=settings.coding_agent_timeout_seconds,
         enabled=settings.coding_agents_enabled,
+        remote_url=settings.coding_agents_url,
     )
     payload = {
         "quality": json.loads(report.model_dump_json()),

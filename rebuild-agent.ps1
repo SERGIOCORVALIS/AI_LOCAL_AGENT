@@ -63,7 +63,7 @@ try {
     Push-Location $infraDir
     try {
         Write-Step "Stopping compose services"
-        docker compose stop qdrant api
+        docker compose stop qdrant coding api
         if ($LASTEXITCODE -ne 0) {
             Write-Advice "Stop returned non-zero; continuing with rebuild."
         }
@@ -75,16 +75,16 @@ try {
         if ($Pull) {
             $buildArgs += "--pull"
         }
-        $buildArgs += "api"
+        $buildArgs += @("api", "coding")
 
-        Write-Step ("Building API image" + ($(if ($NoCache) { " (no cache)" } else { "" })))
+        Write-Step ("Building API + coding sidecar images" + ($(if ($NoCache) { " (no cache)" } else { "" })))
         & docker @buildArgs
         if ($LASTEXITCODE -ne 0) {
             throw "docker compose build failed with exit code $LASTEXITCODE."
         }
 
         Write-Step "Recreating and starting services"
-        docker compose up -d --force-recreate --remove-orphans qdrant api
+        docker compose up -d --force-recreate --remove-orphans qdrant coding api
         if ($LASTEXITCODE -ne 0) {
             throw "docker compose up failed with exit code $LASTEXITCODE. Run logs-agent.cmd for details."
         }
@@ -93,8 +93,14 @@ try {
         Pop-Location
     }
 
+    Write-Step "Waiting for coding sidecar health"
+    Wait-ForUrl -Url "http://127.0.0.1:8091/health"
+
     Write-Step "Waiting for API health"
     Wait-ForUrl -Url "http://127.0.0.1:8000/health"
+
+    Write-Step "Coding agents readiness"
+    Invoke-RestMethod "http://127.0.0.1:8091/agents" | ConvertTo-Json -Depth 8
 
     Write-Step "API status"
     Invoke-RestMethod "http://127.0.0.1:8000/status" | ConvertTo-Json -Depth 8
@@ -102,6 +108,7 @@ try {
     Write-Host ""
     Write-Host "Docker rebuild finished successfully." -ForegroundColor Green
     Write-Advice "Admin panel: open-admin-panel.cmd or http://127.0.0.1:8000/admin"
+    Write-Advice "Coding sidecar: http://127.0.0.1:8091/agents"
     Write-Advice "Logs: logs-agent.cmd"
 }
 catch {

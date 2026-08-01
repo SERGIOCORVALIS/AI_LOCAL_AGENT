@@ -36,6 +36,8 @@ class Settings(BaseSettings):
     coding_agent_timeout_seconds: float = Field(default=300.0)
     # Empty = use model_primary at runtime.
     coding_agent_model: str = Field(default="")
+    # Docker Compose sets http://coding:8091 so API uses the coding sidecar.
+    coding_agents_url: str | None = None
     # None/empty = auto-detect language (needed for Russian voice).
     stt_language: str | None = Field(default=None)
     api_bind_host: str = Field(default="127.0.0.1")
@@ -105,6 +107,16 @@ class Settings(BaseSettings):
             return None
         if isinstance(value, str) and value.strip().lower() in {"auto", "none", "detect"}:
             return None
+        return value
+
+    @field_validator("coding_agents_url", mode="before")
+    @classmethod
+    def _empty_coding_agents_url(cls, value: object) -> object:
+        if value == "" or value is None:
+            return None
+        if isinstance(value, str):
+            cleaned = value.strip().rstrip("/")
+            return cleaned or None
         return value
 
     def validate_production_guards(self) -> None:

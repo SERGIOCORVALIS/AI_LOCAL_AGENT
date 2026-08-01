@@ -91,7 +91,7 @@ try {
 
     Write-Step "Starting Docker services"
     Push-Location (Join-Path $projectRoot "infra")
-    docker compose up --build -d qdrant api
+    docker compose up --build -d qdrant coding api
     $dockerExitCode = $LASTEXITCODE
     Pop-Location
     if ($dockerExitCode -ne 0) {

@@ -11,6 +11,8 @@ services:
       LOCAL_AI_AGENT_QDRANT_URL: http://qdrant:6333
       # Reach Ollama on the Windows host from inside the container.
       LOCAL_AI_AGENT_OLLAMA_URL: http://host.docker.internal:11434
+      # Coding CLIs live in the dedicated sidecar (not on the API image PATH).
+      LOCAL_AI_AGENT_CODING_AGENTS_URL: http://coding:8091
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
@@ -20,6 +22,8 @@ services:
       - ../.env:/app/.env
     depends_on:
       qdrant:
+        condition: service_healthy
+      coding:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
@@ -32,6 +36,35 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
+
+  coding:
+    build:
+      context: ..
+      dockerfile: infra/coding.Dockerfile
+    ports:
+      - "127.0.0.1:8091:8091"
+    env_file:
+      - ../.env
+    environment:
+      OLLAMA_HOST: http://host.docker.internal:11434
+      LOCAL_AI_AGENT_OLLAMA_URL: http://host.docker.internal:11434
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      # Project root for coding-agent file edits.
+      - ..:/workspace
+      - ../runtime:/app/runtime
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8091/health')\"",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 45s
 
   qdrant:
     image: qdrant/qdrant:v1.18.3

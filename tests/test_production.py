@@ -48,6 +48,13 @@ def test_prod_guard_allows_dev_without_token() -> None:
     settings.validate_production_guards()
 
 
+def test_coding_agents_url_empty_and_trailing_slash() -> None:
+    assert Settings(coding_agents_url="").coding_agents_url is None
+    assert Settings(coding_agents_url="http://coding:8091/").coding_agents_url == (
+        "http://coding:8091"
+    )
+
+
 def test_ready_and_health_endpoints(tmp_path: Path) -> None:
     settings = _prod_settings(tmp_path, env="dev", require_api_token=False, api_token=None)
     with patch("apps.api.main.load_settings", return_value=settings):

@@ -175,6 +175,84 @@ def test_readiness_payload() -> None:
     adapter = CodingAgentsAdapter(enabled=True, default_agent="auto", which=which)
     payload = adapter.readiness()
     assert payload["selected"] == "codex"
+    assert payload["runtime"] == "local"
     assert payload["agents"]["codex"]["installed"] is True
     assert payload["agents"]["claude"]["installed"] is False
     assert "ollama launch" in payload["agents"]["claude"]["launch_hint"]
+
+
+def test_remote_readiness_and_invoke() -> None:
+    agents_payload = {
+        "enabled": True,
+        "default": "auto",
+        "model": "gemma4",
+        "timeout_seconds": 300.0,
+        "selected": "codex",
+        "available": ["codex", "opencode", "droid"],
+        "agents": {
+            "codex": {"installed": True, "path": "/usr/bin/codex", "launch_hint": "x"},
+            "opencode": {"installed": True, "path": "/usr/bin/opencode", "launch_hint": "x"},
+            "droid": {"installed": True, "path": "/usr/bin/droid", "launch_hint": "x"},
+            "claude": {"installed": False, "path": None, "launch_hint": "x"},
+        },
+        "provider": "ollama-launch",
+        "runtime": "docker-sidecar",
+    }
+    run_payload = {
+        "agent": "codex",
+        "command": ["codex", "exec"],
+        "exit_code": 0,
+        "stdout": "ok from sidecar",
+        "stderr": "",
+        "success": True,
+        "error": None,
+    }
+
+    class _Resp:
+        def __init__(self, status_code: int, payload: dict) -> None:
+            self.status_code = status_code
+            self._payload = payload
+            self.text = str(payload)
+
+        def raise_for_status(self) -> None:
+            if self.status_code >= 400:
+                raise RuntimeError(f"HTTP {self.status_code}")
+
+        def json(self) -> dict:
+            return self._payload
+
+    http = MagicMock()
+    http.get.return_value = _Resp(200, agents_payload)
+    http.post.return_value = _Resp(200, run_payload)
+
+    adapter = CodingAgentsAdapter(
+        enabled=True,
+        remote_url="http://coding:8091/",
+        http_client=http,
+        model="gemma4",
+    )
+    readiness = adapter.readiness()
+    assert readiness["runtime"] == "docker-sidecar"
+    assert readiness["remote_url"] == "http://coding:8091"
+    assert "codex" in readiness["available"]
+    assert adapter.select_agent("implement helper") == CodingAgentName.CODEX
+
+    result = adapter.invoke("codex", "implement helper", cwd="/workspace")
+    assert result.success
+    assert result.stdout == "ok from sidecar"
+    http.post.assert_called_once()
+    assert http.post.call_args.args[0] == "http://coding:8091/run"
+
+
+def test_remote_readiness_transport_error() -> None:
+    http = MagicMock()
+    http.get.side_effect = RuntimeError("connection refused")
+    adapter = CodingAgentsAdapter(
+        enabled=True,
+        remote_url="http://coding:8091",
+        http_client=http,
+    )
+    payload = adapter.readiness()
+    assert payload["available"] == []
+    assert payload["runtime"] == "docker-sidecar"
+    assert "connection refused" in (payload.get("error") or "")

@@ -263,7 +263,9 @@ Docker Compose binds `8000` / `6333` to `127.0.0.1` only.
 
 ### 🧰 Ollama coding CLIs + web search
 
-Install/launch local coding agents that talk to your Ollama model:
+In Docker mode, coding CLIs (`codex` / `opencode` / `droid`) run in the **`coding` sidecar** (`infra/coding.Dockerfile`, port `127.0.0.1:8091`). The API calls it via `LOCAL_AI_AGENT_CODING_AGENTS_URL=http://coding:8091` (set by Compose). Claude Code is not bundled in v1.
+
+Host / non-Docker installs can still use PATH CLIs:
 
 ```powershell
 ollama launch codex --model gemma4:e4b-it-q4_K_M
@@ -277,6 +279,14 @@ The orchestrator auto-selects an installed CLI for coding goals (`coding_agent` 
 - `LOCAL_AI_AGENT_CODING_AGENTS_ENABLED=true`
 - `LOCAL_AI_AGENT_CODING_AGENT_DEFAULT=auto` (`codex` / `opencode` / `droid` / `claude`)
 - `LOCAL_AI_AGENT_CODING_AGENT_TIMEOUT_SECONDS=300`
+- `LOCAL_AI_AGENT_CODING_AGENTS_URL=` (empty = local PATH; Compose sets `http://coding:8091`; host CLI against stack: `http://127.0.0.1:8091`)
+
+After `rebuild-agent.cmd`, smoke:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8091/agents
+Invoke-RestMethod http://127.0.0.1:8000/status  # coding_agents.available should list CLIs
+```
 
 Web search uses DuckDuckGo HTML (no API key) through the `web_search` capability when the goal asks to search/research without a URL. `status` / `doctor` / `GET /status` expose `coding_agents` readiness and `web_search.provider=duckduckgo`.
 
@@ -286,16 +296,19 @@ Web search uses DuckDuckGo HTML (no API key) through the `web_search` capability
 .\.venv\Scripts\python.exe -m uvicorn apps.api.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-### 🐳 Docker-first API + Qdrant
+### 🐳 Docker-first API + Qdrant + coding sidecar
 
 ```powershell
 cd infra
-docker compose up --build -d qdrant api
+docker compose up --build -d qdrant coding api
 ```
+
+Or from repo root: `rebuild-agent.cmd` / `start-agent.cmd`.
 
 Verify:
 
 ```powershell
+Invoke-RestMethod http://127.0.0.1:8091/agents | ConvertTo-Json -Depth 8
 Invoke-RestMethod http://127.0.0.1:8000/status | ConvertTo-Json -Depth 8
 ```
 

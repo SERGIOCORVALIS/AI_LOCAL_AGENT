@@ -3,7 +3,7 @@ setlocal
 set SCRIPT_DIR=%~dp0
 echo Restarting Local AI Agent Docker services...
 pushd "%SCRIPT_DIR%infra"
-docker compose up --build -d qdrant api
+docker compose up --build -d qdrant coding api
 set EXIT_CODE=%ERRORLEVEL%
 popd
 if not "%EXIT_CODE%"=="0" (

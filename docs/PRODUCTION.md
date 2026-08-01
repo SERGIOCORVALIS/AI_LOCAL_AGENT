@@ -22,7 +22,7 @@ This project is a **local Windows appliance**. Production means hardened daily u
 - OAuth / multi-user identity
 - Internet-facing exposure of admin UI or Qdrant
 
-Do **not** publish ports `8000` / `6333` to the public internet.
+Do **not** publish ports `8000` / `6333` / `8091` (coding sidecar) to the public internet.
 
 ## Recommended `.env` for prod
 

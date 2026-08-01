@@ -32,6 +32,7 @@ SETTINGS_ENV_KEYS: dict[str, str] = {
     "coding_agent_default": "LOCAL_AI_AGENT_CODING_AGENT_DEFAULT",
     "coding_agent_timeout_seconds": "LOCAL_AI_AGENT_CODING_AGENT_TIMEOUT_SECONDS",
     "coding_agent_model": "LOCAL_AI_AGENT_CODING_AGENT_MODEL",
+    "coding_agents_url": "LOCAL_AI_AGENT_CODING_AGENTS_URL",
     "stt_language": "LOCAL_AI_AGENT_STT_LANGUAGE",
     "api_bind_host": "LOCAL_AI_AGENT_API_BIND_HOST",
     "api_token": "LOCAL_AI_AGENT_API_TOKEN",

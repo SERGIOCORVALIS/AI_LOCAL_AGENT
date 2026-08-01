@@ -96,6 +96,7 @@ class OrchestratorRuntime:
             model=coding_model,
             timeout_seconds=settings.coding_agent_timeout_seconds,
             enabled=settings.coding_agents_enabled and "pytest" not in sys.modules,
+            remote_url=settings.coding_agents_url,
         )
         self._capabilities = CapabilityHandlers(
             settings.downloads_watch_path,

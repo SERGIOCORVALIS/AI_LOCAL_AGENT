@@ -117,19 +117,22 @@ uvicorn apps.api.main:app --reload
 📦 AI_LOCAL_AGENT
 ┣ 📂 apps/
 ┃ ┣ 🖥️ cli/          operator CLI
-┃ ┗ 🌐 api/          FastAPI entrypoint + admin UI
+┃ ┣ 🌐 api/          FastAPI entrypoint + admin UI
+┃ ┗ 🧰 coding/       Docker sidecar gateway for coding CLIs
 ┣ 📂 services/
 ┃ ┣ 🎛️ orchestrator/ runtime state machine
 ┃ ┣ 🧠 memory/       JSON + Qdrant backends
 ┃ ┣ 🐝 swarm/        multi-agent routing
 ┃ ┗ 📡 integrations/ Telegram / Watchdog / Playwright / coding CLIs
 ┣ 📂 packages/       typed contracts & safety
-┣ 📂 infra/          Docker Compose + API image
+┣ 📂 infra/          Docker Compose + API + coding images
 ┣ 📂 docs/           guides, ADR, runbooks
 ┗ 📂 tests/          quality gates
 ```
 
-Install optional coding CLIs (used automatically when goals look like code work):
+**Docker (recommended):** coding CLIs ship in the `coding` Compose service (`127.0.0.1:8091`). API uses `LOCAL_AI_AGENT_CODING_AGENTS_URL=http://coding:8091`. Rebuild with `rebuild-agent.cmd`, then check `http://127.0.0.1:8091/agents` and `/status.coding_agents`.
+
+Host / non-Docker optional CLIs:
 
 ```powershell
 ollama launch codex --model gemma4:e4b-it-q4_K_M
