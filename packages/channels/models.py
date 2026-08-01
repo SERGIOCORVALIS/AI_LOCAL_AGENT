@@ -12,7 +12,9 @@ class ChannelMessage(BaseModel):
 class VoicePayload(BaseModel):
     channel: str
     transcript: str
-    duration_seconds: float
+    duration_seconds: float = 0.0
+    source: str = "transcript"
+    audio_path: str | None = None
 
 
 class ApprovalResponse(BaseModel):

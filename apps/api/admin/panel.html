@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ADMIN_TITLE}}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/admin/static/panel.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="rail" aria-label="Навигация">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"></div>
+        <div>
+          <div class="brand-name">Local AI Agent</div>
+          <div class="brand-sub" id="rail-title">{{ADMIN_TITLE}}</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button type="button" class="nav-item active" data-view="overview">Обзор</button>
+        <button type="button" class="nav-item" data-view="chat" id="nav-chat">Чат</button>
+        <button type="button" class="nav-item" data-view="tasks">Задачи</button>
+        <button type="button" class="nav-item" data-view="memory">Память</button>
+        <button type="button" class="nav-item" data-view="stack">Стек</button>
+        <button type="button" class="nav-item" data-view="settings">Настройки</button>
+      </nav>
+      <button type="button" class="btn primary rail-chat-btn" id="btn-rail-chat">Диалог с ИИ</button>
+
+      <div class="rail-foot">
+        <label class="token-label" for="api-token">
+          API token
+          <span id="token-required-badge" class="badge warn hidden">нужен</span>
+        </label>
+        <input id="api-token" type="password" autocomplete="off" placeholder="из .env → LOCAL_AI_AGENT_API_TOKEN" />
+        <p id="token-hint" class="token-hint hidden">Для чата и действий вставьте token из <code>.env</code>.</p>
+        <div class="rail-links">
+          <a href="/docs" target="_blank" rel="noopener">API docs</a>
+          <a href="/status" target="_blank" rel="noopener">Status</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div id="restart-banner" class="restart-banner hidden" role="status">
+        Изменения сохранены в <code>.env</code>. Перезапустите агент:
+        <code>restart-agent.cmd</code> или <code>REBUT-DOKER.cmd</code>.
+        <button type="button" class="linkish" id="dismiss-banner">Скрыть</button>
+      </div>
+
+      <!-- Overview -->
+      <section id="view-overview" class="view active">
+        <header class="view-head">
+          <div>
+            <h1>Обзор</h1>
+            <p class="lede">Состояние стека без сырого JSON.</p>
+          </div>
+          <div class="row">
+            <button type="button" class="btn ghost" id="btn-overview-chat">Диалог с ИИ</button>
+            <button type="button" class="btn primary" id="btn-refresh-overview">Обновить</button>
+          </div>
+        </header>
+        <div class="kpi-grid" id="kpi-grid"></div>
+        <div class="panel soft" id="overview-detail"></div>
+      </section>
+
+      <!-- Chat landing — opens dialog -->
+      <section id="view-chat" class="view">
+        <header class="view-head">
+          <div>
+            <h1>Чат с агентом</h1>
+            <p class="lede">Прямой диалог с ИИ через оркестратор (<code>POST /tasks/run</code>).</p>
+          </div>
+        </header>
+        <div class="chat-landing panel">
+          <h2>Диалоговое окно</h2>
+          <p class="muted">Откройте модальный чат — он доступен с любого экрана панели.</p>
+          <div class="row" style="margin-top:16px">
+            <button type="button" class="btn primary" id="btn-open-chat-page">Открыть диалог с ИИ</button>
+            <button type="button" class="btn ghost" id="btn-clear-chat">Очистить историю</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tasks -->
+      <section id="view-tasks" class="view">
+        <header class="view-head">
+          <div>
+            <h1>Задачи</h1>
+            <p class="lede">Recent Tasks и approval.</p>
+          </div>
+          <button type="button" class="btn primary" id="btn-refresh-tasks">Обновить</button>
+        </header>
+        <div class="split">
+          <div class="panel" id="tasks-list"></div>
+          <div class="panel" id="task-detail"><p class="muted">Выберите задачу.</p></div>
+        </div>
+      </section>
+
+      <!-- Memory -->
+      <section id="view-memory" class="view">
+        <header class="view-head">
+          <div>
+            <h1>Память</h1>
+            <p class="lede">Memory store — поиск и CRUD.</p>
+          </div>
+          <div class="row">
+            <button type="button" class="btn ghost" id="btn-refresh-memory">Обновить</button>
+            <button type="button" class="btn primary" id="btn-memory-create">Добавить</button>
+          </div>
+        </header>
+        <div class="toolbar">
+          <input id="memory-q" type="search" placeholder="Поиск…" />
+          <select id="memory-kind">
+            <option value="">Все kinds</option>
+            <option value="preference">preference</option>
+            <option value="rule">rule</option>
+            <option value="habit">habit</option>
+            <option value="fact">fact</option>
+            <option value="episode">episode</option>
+          </select>
+        </div>
+        <div class="panel" id="memory-list"></div>
+      </section>
+
+      <!-- Stack -->
+      <section id="view-stack" class="view">
+        <header class="view-head">
+          <div>
+            <h1>Стек</h1>
+            <p class="lede">Ollama, Perception, Coding Agents, Sandbox, Telegram.</p>
+          </div>
+          <button type="button" class="btn primary" id="btn-refresh-stack">Обновить</button>
+        </header>
+        <div class="tabs" id="stack-tabs">
+          <button type="button" class="tab active" data-tab="models">Ollama / Models</button>
+          <button type="button" class="tab" data-tab="perception">Perception</button>
+          <button type="button" class="tab" data-tab="coding">Coding Agents</button>
+          <button type="button" class="tab" data-tab="sandbox">Sandbox &amp; FS</button>
+          <button type="button" class="tab" data-tab="telegram">Telegram</button>
+        </div>
+        <div class="panel" id="stack-body"></div>
+        <p class="hint">В Docker Compose переменные <code>QDRANT_URL</code> и <code>OLLAMA_URL</code> могут переопределяться блоком <code>environment</code>.</p>
+      </section>
+
+      <!-- Settings -->
+      <section id="view-settings" class="view">
+        <header class="view-head">
+          <div>
+            <h1>Настройки</h1>
+            <p class="lede">Редактирование <code>.env</code> через диалоги. После сохранения — перезапуск.</p>
+          </div>
+          <button type="button" class="btn ghost" id="btn-refresh-settings">Обновить</button>
+        </header>
+        <div class="settings-grid" id="settings-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modal-root" class="modal-root hidden" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <header class="modal-head">
+        <h2 id="modal-title">Диалог</h2>
+        <button type="button" class="icon-btn" data-close-modal aria-label="Закрыть">×</button>
+      </header>
+      <div class="modal-body" id="modal-body"></div>
+      <footer class="modal-foot" id="modal-foot"></footer>
+    </div>
+  </div>
+
+  <!-- Dedicated AI chat dialog -->
+  <div id="chat-dialog-root" class="chat-dialog-root hidden" aria-hidden="true">
+    <div class="chat-dialog-backdrop" data-close-chat-dialog></div>
+    <div class="chat-dialog" role="dialog" aria-modal="true" aria-labelledby="chat-dialog-title">
+      <header class="chat-dialog-head">
+        <div>
+          <h2 id="chat-dialog-title">Диалог с ИИ</h2>
+          <p class="lede">Прямое общение с Local AI Agent</p>
+        </div>
+        <div class="row">
+          <button type="button" class="btn ghost" id="btn-clear-chat-dialog">Очистить</button>
+          <button type="button" class="icon-btn" data-close-chat-dialog aria-label="Закрыть">×</button>
+        </div>
+      </header>
+      <div id="chat-token-bar" class="chat-token-bar hidden">
+        <label for="chat-api-token">API token для чата</label>
+        <div class="row" style="width:100%">
+          <input id="chat-api-token" type="password" autocomplete="off" placeholder="LOCAL_AI_AGENT_API_TOKEN" />
+          <button type="button" class="btn primary" id="btn-save-chat-token">Сохранить</button>
+        </div>
+        <p class="hint" style="margin:6px 0 0">Значение из <code>.env</code> → <code>LOCAL_AI_AGENT_API_TOKEN</code>. Без него POST вернёт 401.</p>
+      </div>
+      <div id="chat-stream" class="chat-stream chat-dialog-stream" aria-live="polite"></div>
+      <form id="chat-form" class="chat-composer chat-dialog-composer">
+        <textarea id="chat-input" rows="2" placeholder="Напишите агенту…" required></textarea>
+        <button type="submit" class="btn primary" id="chat-send">Отправить</button>
+      </form>
+    </div>
+  </div>
+
+  <button type="button" class="chat-fab" id="btn-chat-fab" title="Диалог с ИИ" aria-label="Открыть диалог с ИИ">
+    <span class="chat-fab-label">ИИ</span>
+  </button>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+  <script src="/admin/static/panel.js"></script>
+</body>
+</html>

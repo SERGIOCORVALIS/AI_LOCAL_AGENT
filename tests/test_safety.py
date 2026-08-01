@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from packages.core import Action, ActionMode
+from packages.core import Action, ActionMode, PolicyVerdict
 from packages.safety import (
     ActionSensitivity,
     AuditEvent,
@@ -36,6 +36,36 @@ def test_policy_engine_enforces_execute_allowlist() -> None:
 
     assert decision.required_approval is True
     assert "allowlist" in decision.tags
+
+
+def test_policy_engine_hard_denies_denylisted_actions() -> None:
+    policy = PolicyEngine(
+        allowed_execute_actions={"noop"},
+        denied_execute_actions={"format_disk"},
+    )
+    decision = policy.evaluate(
+        Action(
+            name="format_disk",
+            description="wipe",
+            mode=ActionMode.EXECUTE,
+            side_effects=["delete"],
+        )
+    )
+    assert decision.verdict == PolicyVerdict.DENY
+    assert decision.required_approval is False
+
+
+def test_policy_engine_denies_forbidden_side_effects() -> None:
+    policy = PolicyEngine()
+    decision = policy.evaluate(
+        Action(
+            name="custom",
+            description="blocked",
+            mode=ActionMode.EXECUTE,
+            side_effects=["forbidden"],
+        )
+    )
+    assert decision.verdict == PolicyVerdict.DENY
 
 
 def test_audit_logger_writes_jsonl(tmp_path: Path) -> None:

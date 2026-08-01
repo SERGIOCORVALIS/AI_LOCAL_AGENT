@@ -18,10 +18,15 @@ class PolicyEngine:
     def __init__(
         self,
         allowed_execute_actions: set[str] | None = None,
+        denied_execute_actions: set[str] | None = None,
     ) -> None:
         self._allowed_execute_actions = {
             action_name.lower()
             for action_name in (allowed_execute_actions or set())
+        }
+        self._denied_execute_actions = {
+            action_name.lower()
+            for action_name in (denied_execute_actions or set())
         }
 
     def classify(self, action: Action) -> ActionSensitivity:
@@ -37,6 +42,18 @@ class PolicyEngine:
     def evaluate(self, action: Action) -> PolicyDecision:
         sensitivity = self.classify(action)
         normalized_name = action.name.lower()
+        allowlisted = normalized_name in self._allowed_execute_actions
+        side_effects = {effect.lower() for effect in action.side_effects}
+
+        if normalized_name in self._denied_execute_actions or (
+            {"forbidden", "blocked", "deny"} & side_effects
+        ):
+            return PolicyDecision(
+                verdict=PolicyVerdict.DENY,
+                reason="Action is hard-denied by local policy denylist.",
+                required_approval=False,
+                tags=[sensitivity.value, action.mode.value, "deny"],
+            )
 
         if action.mode == ActionMode.OBSERVE:
             return PolicyDecision(
@@ -59,10 +76,7 @@ class PolicyEngine:
                 tags=[sensitivity.value, action.mode.value],
             )
 
-        if (
-            self._allowed_execute_actions
-            and normalized_name not in self._allowed_execute_actions
-        ):
+        if self._allowed_execute_actions and not allowlisted:
             return PolicyDecision(
                 verdict=PolicyVerdict.REQUIRE_APPROVAL,
                 reason=(
@@ -87,7 +101,7 @@ class PolicyEngine:
                 tags=[sensitivity.value, action.mode.value],
             )
 
-        if sensitivity == ActionSensitivity.SENSITIVE:
+        if sensitivity == ActionSensitivity.SENSITIVE and not allowlisted:
             return PolicyDecision(
                 verdict=PolicyVerdict.REQUIRE_APPROVAL,
                 reason="Execute mode requires approval for sensitive actions.",
@@ -97,6 +111,11 @@ class PolicyEngine:
 
         return PolicyDecision(
             verdict=PolicyVerdict.ALLOW,
-            reason="Safe execute action permitted.",
-            tags=[sensitivity.value, action.mode.value],
+            reason=(
+                "Allowlisted execute action permitted."
+                if allowlisted
+                else "Safe execute action permitted."
+            ),
+            tags=[sensitivity.value, action.mode.value]
+            + (["allowlist"] if allowlisted else []),
         )

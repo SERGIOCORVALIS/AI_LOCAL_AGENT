@@ -3,6 +3,7 @@ from __future__ import annotations
 import httpx
 
 from packages.memory import MemoryItem, MemoryKind
+from services.memory.embeddings import EmbeddingService
 
 
 class QdrantMemoryStore:
@@ -13,14 +14,20 @@ class QdrantMemoryStore:
         url: str,
         collection: str,
         client: httpx.Client | None = None,
+        embedder: EmbeddingService | None = None,
     ) -> None:
         self._url = url.rstrip("/")
         self._collection = collection
         self._client = client or httpx.Client(timeout=5.0)
+        self._embedder = embedder or EmbeddingService()
 
     @property
     def collection(self) -> str:
         return self._collection
+
+    @property
+    def embedder(self) -> EmbeddingService:
+        return self._embedder
 
     def ping(self) -> bool:
         try:
@@ -30,6 +37,7 @@ class QdrantMemoryStore:
         return response.is_success
 
     def initialize(self) -> None:
+        self._embedder.ensure_ready()
         self._ensure_collection()
 
     def remember(
@@ -67,6 +75,34 @@ class QdrantMemoryStore:
             "operation_acknowledged": bool(response.is_success),
         }
 
+    def _ensure_collection(self) -> None:
+        vector_size = self._embedder.dimensions
+        info = self._client.get(f"{self._url}/collections/{self._collection}")
+        if info.status_code == 200:
+            result = info.json().get("result", {})
+            vectors = result.get("config", {}).get("params", {}).get("vectors", {})
+            size = vectors.get("size") if isinstance(vectors, dict) else None
+            if size == vector_size:
+                return
+            delete_response = self._client.delete(
+                f"{self._url}/collections/{self._collection}"
+            )
+            delete_response.raise_for_status()
+
+        payload = {
+            "vectors": {
+                "size": vector_size,
+                "distance": "Cosine",
+            }
+        }
+        response = self._client.put(
+            f"{self._url}/collections/{self._collection}",
+            json=payload,
+        )
+        if response.status_code == 409:
+            return
+        response.raise_for_status()
+
     def search(
         self,
         query: str,
@@ -86,6 +122,17 @@ class QdrantMemoryStore:
             f"{self._url}/collections/{self._collection}/points/search",
             json=payload,
         )
+        if response.status_code == 400:
+            # Collection schema drift (vector size) — recreate and retry once.
+            delete_response = self._client.delete(
+                f"{self._url}/collections/{self._collection}"
+            )
+            delete_response.raise_for_status()
+            self._ensure_collection()
+            response = self._client.post(
+                f"{self._url}/collections/{self._collection}/points/search",
+                json=payload,
+            )
         response.raise_for_status()
         points = response.json().get("result", [])
         items = [MemoryItem.model_validate(point["payload"]) for point in points]
@@ -158,28 +205,11 @@ class QdrantMemoryStore:
         self.upsert(updated_item)
         return updated_item
 
-    def _ensure_collection(self) -> None:
-        payload = {
-            "vectors": {
-                "size": 4,
-                "distance": "Cosine",
-            }
-        }
-        response = self._client.put(
-            f"{self._url}/collections/{self._collection}",
-            json=payload,
-        )
-        if response.status_code == 409:
-            return
-        response.raise_for_status()
-
     def _vectorize(self, item: MemoryItem) -> list[float]:
         return self._vectorize_text(f"{item.kind}:{item.key}:{item.value}")
 
     def _vectorize_text(self, text: str) -> list[float]:
-        raw = text.encode("utf-8")[:4]
-        padded = raw + b"\x00" * (4 - len(raw))
-        return [float(byte) / 255.0 for byte in padded]
+        return self._embedder.embed(text)
 
     def _kind_filter(self, kind: MemoryKind) -> dict[str, object]:
         return {

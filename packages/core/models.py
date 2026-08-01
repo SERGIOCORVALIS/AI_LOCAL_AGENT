@@ -15,6 +15,7 @@ def utc_now() -> datetime:
 class TaskState(StrEnum):
     PENDING = "pending"
     RUNNING = "running"
+    AWAITING_APPROVAL = "awaiting_approval"
     SUCCEEDED = "succeeded"
     FAILED = "failed"
     CANCELLED = "cancelled"
@@ -98,6 +99,8 @@ class Task(BaseModel):
     actions: list[Action] = Field(default_factory=list)
     observations: list[Observation] = Field(default_factory=list)
     artifacts: list[Artifact] = Field(default_factory=list)
+    resume_from_index: int | None = None
+    approved_action_indexes: list[int] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 
@@ -105,11 +108,25 @@ class Task(BaseModel):
         self.state = TaskState.RUNNING
         self.updated_at = utc_now()
 
+    def mark_awaiting_approval(self, observation: Observation, action_index: int) -> None:
+        self.state = TaskState.AWAITING_APPROVAL
+        self.resume_from_index = action_index
+        self.observations.append(observation)
+        self.updated_at = utc_now()
+
     def mark_succeeded(self) -> None:
         self.state = TaskState.SUCCEEDED
+        self.resume_from_index = None
         self.updated_at = utc_now()
 
     def mark_failed(self, observation: Observation) -> None:
         self.state = TaskState.FAILED
+        self.resume_from_index = None
+        self.observations.append(observation)
+        self.updated_at = utc_now()
+
+    def mark_cancelled(self, observation: Observation) -> None:
+        self.state = TaskState.CANCELLED
+        self.resume_from_index = None
         self.observations.append(observation)
         self.updated_at = utc_now()

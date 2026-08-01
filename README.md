@@ -2,23 +2,23 @@
 
 # 🧠 Local AI Agent
 
-### ⚡ Windows-first · Local-first · Safety-first Digital Twin Runtime
+### ⚡ Windows-first · Local-first · Safety-first Agent Runtime
 
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Qdrant](https://img.shields.io/badge/Qdrant-Memory-DC244C?style=for-the-badge&logo=qdrant&logoColor=white)](https://qdrant.tech/)
 [![License](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](./LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.2.0-F59E0B?style=for-the-badge)](./VERSION)
+[![Version](https://img.shields.io/badge/Version-0.3.0-F59E0B?style=for-the-badge)](./VERSION)
 
 [![Ruff](https://img.shields.io/badge/Ruff-Clean-✓-111827?style=flat-square&labelColor=F97316)](https://docs.astral.sh/ruff/)
 [![mypy](https://img.shields.io/badge/mypy-strict-✓-111827?style=flat-square&labelColor=3B82F6)](https://mypy-lang.org/)
 [![pytest](https://img.shields.io/badge/pytest-passing-✓-111827?style=flat-square&labelColor=10B981)](https://docs.pytest.org/)
-[![Coverage](https://img.shields.io/badge/coverage-95%25+-✓-111827?style=flat-square&labelColor=8B5CF6)](./pyproject.toml)
+[![Coverage](https://img.shields.io/badge/coverage-85%25+-✓-111827?style=flat-square&labelColor=8B5CF6)](./pyproject.toml)
 
 > 💎 **Premium local autonomy** — orchestrate tasks, remember preferences, automate Windows workflows, and keep every side effect under policy control.
 
-[📖 Setup Guide](./docs/WINDOWS_SETUP_GUIDE.md) · [🧭 Release Checklist](./docs/RELEASE_CHECKLIST.md) · [🧾 Changelog](./CHANGELOG.md) · [🔐 Threat Model](./docs/security/threat-model.md)
+[📖 Setup Guide](./docs/WINDOWS_SETUP_GUIDE.md) · [🏭 Production](./docs/PRODUCTION.md) · [🧭 Release Checklist](./docs/RELEASE_CHECKLIST.md) · [🧾 Changelog](./CHANGELOG.md) · [🔐 Threat Model](./docs/security/threat-model.md)
 
 </div>
 
@@ -31,8 +31,10 @@
 | 🧩 **Typed orchestration** | Reliable task lifecycle with Pydantic contracts |
 | 🛡️ **Safety layer** | Audit trail, dry-run, allowlist, approval gates |
 | 🧪 **Sandbox execution** | Isolated runs for generated code |
-| 🧠 **Memory & Digital Twin** | Preference retrieval via JSON or Qdrant |
+| 🧠 **Memory** | Preference retrieval via JSON or Qdrant embeddings |
 | 🛰️ **Omnichannel ready** | CLI, HTTP API, Telegram / Watchdog / Playwright adapters |
+| 🧰 **Ollama coding CLIs** | Auto-select Codex / OpenCode / Droid / Claude Code via `ollama launch` |
+| 🔎 **Web search** | DuckDuckGo HTML search (no API key) plus URL fetch |
 
 ---
 
@@ -47,7 +49,7 @@ start-agent.cmd
 Then open the admin panel:
 
 ```text
-open-agent.cmd
+open-admin-panel.cmd
 ```
 
 > 🟢 **Tip:** first install with `windows-bootstrap.cmd` or  
@@ -80,6 +82,7 @@ python -m venv .venv
 pip install -e .[dev]
 pytest
 python -m apps.cli.main status
+python -m apps.cli.main ollama-check
 uvicorn apps.api.main:app --reload
 ```
 
@@ -91,10 +94,11 @@ uvicorn apps.api.main:app --reload
 |---|---|---|
 | ▶️ Start | `start-agent.cmd` | Docker-first recommended mode |
 | 📊 Status | `status-agent.cmd` | Containers + API status |
-| 🔄 Restart | `restart-agent.cmd` | Rebuild & restart services |
+| 🔄 Restart | `restart-agent.cmd` | Quick rebuild & restart services |
+| 🧱 Rebuild | `rebuild-agent.cmd` | Full Docker image rebuild + recreate |
 | ⏹️ Stop | `stop-agent.cmd` | Stop API + Qdrant |
 | 📜 Logs | `logs-agent.cmd` | Live Docker logs |
-| 🖥️ Admin UI | `open-agent.cmd` | Open local dashboard |
+| 🖥️ Admin UI | `open-admin-panel.cmd` | Open luxury admin panel |
 | ❤️ Health | `healthcheck-agent.cmd` | Full readiness check |
 | ⚙️ Configure | `configure-env.cmd` | Interactive `.env` wizard |
 | 💾 Backup | `backup-agent.cmd` | Zip runtime + config |
@@ -116,12 +120,23 @@ uvicorn apps.api.main:app --reload
 ┃ ┣ 🎛️ orchestrator/ runtime state machine
 ┃ ┣ 🧠 memory/       JSON + Qdrant backends
 ┃ ┣ 🐝 swarm/        multi-agent routing
-┃ ┗ 📡 integrations/ Telegram / Watchdog / Playwright
+┃ ┗ 📡 integrations/ Telegram / Watchdog / Playwright / coding CLIs
 ┣ 📂 packages/       typed contracts & safety
 ┣ 📂 infra/          Docker Compose + API image
 ┣ 📂 docs/           guides, ADR, runbooks
 ┗ 📂 tests/          quality gates
 ```
+
+Install optional coding CLIs (used automatically when goals look like code work):
+
+```powershell
+ollama launch codex --model gemma4:e4b-it-q4_K_M
+ollama launch opencode --model gemma4:e4b-it-q4_K_M
+ollama launch droid --model gemma4:e4b-it-q4_K_M
+ollama launch claude --model gemma4:e4b-it-q4_K_M
+```
+
+Web search uses DuckDuckGo (`web_search` capability); pass a URL for `web_fetch`.
 
 ---
 
@@ -130,14 +145,27 @@ uvicorn apps.api.main:app --reload
 | 🔗 Endpoint | 🎨 Role |
 |---|---|
 | `GET /health` | 💚 Liveness |
+| `GET /ready` | ✅ Readiness (memory / Ollama) |
 | `GET /status` | 📡 Runtime snapshot |
 | `GET /metrics` | 📈 Counters & uptime |
-| `GET /admin` | 🖥️ Local management panel |
+| `GET /admin` | 🖥️ Luxury admin panel (чат, стек, настройки) |
+| `GET/PUT /settings` | ⚙️ Read / write `.env` (restart required) |
 | `GET /tasks/recent` | 🗂️ Recent tasks |
 | `GET/POST/PATCH/DELETE /memory` | 🧠 Memory CRUD + filters |
-| `POST /tasks/run` | 🚀 Run orchestrator task |
+| `POST /tasks/run` | 🚀 Run orchestrator task / admin chat |
 
-Admin panel: **http://127.0.0.1:8000/admin**
+Admin panel: **http://127.0.0.1:8000/admin** — left nav: Обзор, Чат, Задачи, Память, Стек, Настройки. Chat uses `POST /tasks/run`. Settings dialogs persist to `.env` (restart with `restart-agent.cmd`).
+
+### Telegram
+
+Set in `.env` (no inline `#` comments on secret lines):
+
+```env
+LOCAL_AI_AGENT_TELEGRAM_BOT_TOKEN=
+LOCAL_AI_AGENT_TELEGRAM_ADMIN_CHAT_ID=
+```
+
+Restart the agent. The bot shows **«печатает…»**, acknowledges the request, then replies. Only the admin chat id can use it.
 
 ---
 
@@ -146,8 +174,8 @@ Admin panel: **http://127.0.0.1:8000/admin**
 - 🐍 Python **3.12+**
 - 🧬 Full type hints on public contracts
 - 🧹 `ruff` · 🔎 `mypy` · 🧪 `pytest` · 📊 coverage · 🪝 pre-commit
-- 🪵 Structured logging with correlation IDs
-- 🛡️ Safety gates for side effects
+- 🪵 Structured prod logging with correlation IDs
+- 🛡️ Safety gates for side effects + optional API token
 
 ```powershell
 .\.venv\Scripts\python.exe -m ruff check .
@@ -172,8 +200,9 @@ Admin panel: **http://127.0.0.1:8000/admin**
 
 | 📁 File | 🧭 Purpose |
 |---|---|
-| `VERSION` | 🏷️ Current release |
+| `VERSION` | 🏷️ Current release (`0.3.0`) |
 | `CHANGELOG.md` | 📰 User-visible history |
+| `docs/PRODUCTION.md` | 🏭 Local prod runbook |
 | `docs/RELEASE_CHECKLIST.md` | ✅ Ship checklist |
 | `LICENSE` · `NOTICE` | ⚖️ License + author support |
 
@@ -196,12 +225,12 @@ I am self-taught and really enjoy exploring the field of IT. I would be grateful
 
 ## 🏁 Current Status
 
-🟢 **Production-ready local foundation** with:
+🟢 **Local production foundation (v0.3.0)** with:
 
-- real HTTP API
-- Docker-first Qdrant memory path
+- real HTTP API + `/ready` + optional API token
+- Docker-first Qdrant path bound to `127.0.0.1`
 - Windows one-click ops suite
-- admin UI + metrics
+- admin UI + metrics + structured prod logs
 - optional Telegram / Watchdog / Playwright boundaries
 
 <div align="center">

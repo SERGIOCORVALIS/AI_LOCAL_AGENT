@@ -1,13 +1,24 @@
 FROM python:3.12-slim
 
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
 WORKDIR /app
 
-COPY pyproject.toml README.md /app/
+RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin appuser
+
+COPY pyproject.toml README.md LICENSE VERSION /app/
 COPY apps /app/apps
 COPY packages /app/packages
 COPY services /app/services
 
-RUN pip install --no-cache-dir -e .
+RUN pip install --no-cache-dir -e ".[integrations]" \
+    && mkdir -p /app/runtime /app/backups \
+    && chown -R appuser:appuser /app
+
+USER appuser
 
 EXPOSE 8000
 

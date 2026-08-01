@@ -20,6 +20,18 @@ def test_task_state_transitions() -> None:
     assert task.state == "succeeded"
 
 
+def test_task_awaiting_approval_transition() -> None:
+    from packages.core import Observation
+
+    task = Task(title="Approve", goal="Needs human")
+    task.mark_awaiting_approval(
+        Observation(source="policy", summary="paused"),
+        action_index=0,
+    )
+    assert task.state == "awaiting_approval"
+    assert task.resume_from_index == 0
+
+
 def test_action_and_policy_models_are_typed() -> None:
     action = Action(
         name="scan",

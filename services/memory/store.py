@@ -1,18 +1,29 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Any, cast
 from uuid import UUID
 
 from packages.memory import MemoryItem, MemoryKind
+from services.memory.embeddings import HASHED_FALLBACK_DIMENSION, EmbeddingService, hashed_embed_text
 
 
 class MemoryStore:
-    """Simple JSON-backed preference and rule memory."""
+    """JSON-backed memory with semantic retrieve via EmbeddingService."""
 
-    def __init__(self, path: Path) -> None:
+    def __init__(
+        self,
+        path: Path,
+        embedder: EmbeddingService | None = None,
+    ) -> None:
         self._path = path
+        self._embedder = embedder or EmbeddingService()
+
+    @property
+    def embedder(self) -> EmbeddingService:
+        return self._embedder
 
     def remember(
         self,
@@ -37,19 +48,34 @@ class MemoryStore:
         offset: int = 0,
         kind: MemoryKind | None = None,
     ) -> list[MemoryItem]:
-        lowered_query = query.lower()
         items = [
             MemoryItem.model_validate(record)
             for record in self._load_all()
-            if (
-                kind is None or record["kind"] == kind
-            ) and (
-                lowered_query in record["key"].lower()
-                or lowered_query in record["value"].lower()
-                or any(lowered_query in tag.lower() for tag in record["tags"])
-            )
+            if kind is None or record["kind"] == kind
         ]
-        return items[offset : offset + limit]
+        if not query.strip():
+            return items[offset : offset + limit]
+
+        # Local JSON store ranks with fast hashed vectors. Calling Ollama embed
+        # per item would make every chat message take minutes.
+        query_vector = hashed_embed_text(query, HASHED_FALLBACK_DIMENSION)
+        scored: list[tuple[float, MemoryItem]] = []
+        lowered = query.lower()
+        for item in items:
+            text = f"{item.kind}:{item.key}:{item.value}:{' '.join(item.tags)}"
+            item_vector = hashed_embed_text(text, HASHED_FALLBACK_DIMENSION)
+            score = self._cosine(query_vector, item_vector)
+            if (
+                lowered in item.key.lower()
+                or lowered in item.value.lower()
+                or any(lowered in tag.lower() for tag in item.tags)
+            ):
+                score += 0.15
+            scored.append((score, item))
+
+        scored.sort(key=lambda pair: pair[0], reverse=True)
+        ranked = [item for score, item in scored if score > 0.0]
+        return ranked[offset : offset + limit]
 
     def delete(self, memory_id: str) -> bool:
         records = self._load_all()
@@ -104,3 +130,14 @@ class MemoryStore:
     def _persist(self, records: list[dict[str, Any]]) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)
         self._path.write_text(json.dumps(records, indent=2), encoding="utf-8")
+
+    @staticmethod
+    def _cosine(left: list[float], right: list[float]) -> float:
+        if not left or not right or len(left) != len(right):
+            return 0.0
+        dot = sum(a * b for a, b in zip(left, right, strict=True))
+        left_norm = math.sqrt(sum(a * a for a in left))
+        right_norm = math.sqrt(sum(b * b for b in right))
+        if left_norm == 0.0 or right_norm == 0.0:
+            return 0.0
+        return dot / (left_norm * right_norm)
