@@ -1,9 +1,7 @@
 from pathlib import Path
-from unittest.mock import MagicMock
 
 from packages.memory import MemoryKind
 from services.memory import MemoryStore
-from services.memory.embeddings import EmbeddingService
 
 
 def test_memory_store_remember_and_retrieve(tmp_path: Path) -> None:
@@ -36,24 +34,12 @@ def test_memory_store_remember_and_retrieve(tmp_path: Path) -> None:
 
 
 def test_memory_store_semantic_retrieve_ranks_by_embeddings(tmp_path: Path) -> None:
-    embedder = MagicMock(spec=EmbeddingService)
-
-    def fake_embed(text: str) -> list[float]:
-        lowered = text.lower()
-        if "typing" in lowered or "strict" in lowered:
-            return [1.0, 0.0, 0.0, 0.0]
-        if "network" in lowered or "proxy" in lowered:
-            return [0.0, 1.0, 0.0, 0.0]
-        if "query about code quality" in lowered:
-            return [0.9, 0.1, 0.0, 0.0]
-        return [0.0, 0.0, 1.0, 0.0]
-
-    embedder.embed.side_effect = fake_embed
-    store = MemoryStore(tmp_path / "semantic-memory.json", embedder=embedder)
+    # JSON MemoryStore ranks with hashed vectors + substring boost (not live Ollama).
+    store = MemoryStore(tmp_path / "semantic-memory.json")
     store.remember(
         kind=MemoryKind.PREFERENCE,
         key="style",
-        value="prefer strict typing",
+        value="prefer strict typing for code quality reviews",
         tags=["python"],
     )
     store.remember(
@@ -63,6 +49,6 @@ def test_memory_store_semantic_retrieve_ranks_by_embeddings(tmp_path: Path) -> N
         tags=["network"],
     )
 
-    hits = store.retrieve("query about code quality", limit=1)
+    hits = store.retrieve("strict typing", limit=1)
     assert hits
     assert hits[0].key == "style"

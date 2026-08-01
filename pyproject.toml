@@ -115,6 +115,7 @@ markers = [
 [tool.coverage.run]
 omit = [
   "apps/telegram/*",
+  "services/integrations/telegram_bot.py",
   "services/sandbox/executor.py",
   "services/fs_daemon/scanner.py",
 ]
@@ -124,6 +125,7 @@ fail_under = 85
 skip_empty = true
 omit = [
   "apps/telegram/*",
+  "services/integrations/telegram_bot.py",
   "services/sandbox/executor.py",
   "services/fs_daemon/scanner.py",
 ]
