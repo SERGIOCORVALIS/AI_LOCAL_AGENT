@@ -11,6 +11,7 @@ from packages.memory import MemoryItem, MemoryKind
 from packages.routing import TaskRouter
 from packages.safety import AuditEvent, AuditLogger, PolicyEngine
 from services.channels import ChannelGateway
+from services.integrations.coding_agents import CodingAgentsAdapter
 from services.llm import (
     AgentModelConfig,
     OllamaClient,
@@ -21,7 +22,6 @@ from services.llm import (
 from services.memory import build_memory_backend
 from services.memory.protocol import MemoryBackend
 from services.observability import configure_logging
-from services.integrations.coding_agents import CodingAgentsAdapter
 from services.orchestrator.capabilities import CapabilityHandlers, plan_actions_for_goal
 from services.orchestrator.registry import CapabilityRegistry
 from services.orchestrator.store import TaskStore

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .coding_agents import CodingAgentsAdapter, CodingAgentName, goal_requests_coding_agent
+from .coding_agents import CodingAgentName, CodingAgentsAdapter, goal_requests_coding_agent
 from .playwright_adapter import PlaywrightAutomationAdapter
 from .telegram_adapter import TelegramAdapter
 from .watchdog_adapter import WatchdogAdapter

@@ -7,7 +7,11 @@ from typing import Any, cast
 from uuid import UUID
 
 from packages.memory import MemoryItem, MemoryKind
-from services.memory.embeddings import HASHED_FALLBACK_DIMENSION, EmbeddingService, hashed_embed_text
+from services.memory.embeddings import (
+    HASHED_FALLBACK_DIMENSION,
+    EmbeddingService,
+    hashed_embed_text,
+)
 
 
 class MemoryStore:

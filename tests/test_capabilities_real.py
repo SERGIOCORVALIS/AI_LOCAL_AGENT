@@ -79,7 +79,10 @@ def test_capability_sandbox_and_reflect(tmp_path: Path) -> None:
     assert "ok" in sandbox_result.message
     assert sandbox_result.observations[0].details["mode"] == "local"
     assert reflect_result.success is True
-    assert "Ollama недоступен" in reflect_result.message or "Memory context items=1" in reflect_result.message
+    assert (
+        "Ollama недоступен" in reflect_result.message
+        or "Memory context items=1" in reflect_result.message
+    )
     assert reflect_result.observations[0].details["backend"] == "local"
     assert reflect_result.observations[0].details["degraded"] is True
 
