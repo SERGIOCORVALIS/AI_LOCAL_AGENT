@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🧠 Local AI Agent
+<img src="./assets/brand/local-ai-agent.png" width="168" alt="Local AI Agent — локальный ИИ" />
+
+# Local AI Agent
 
 ### ⚡ Windows-first · Local-first · Safety-first Agent Runtime
 

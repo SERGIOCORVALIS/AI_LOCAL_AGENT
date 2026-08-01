@@ -323,14 +323,17 @@ def create_app() -> FastAPI:
 
     @api_app.get("/admin/static/{asset_name}")
     def admin_static(asset_name: str) -> FileResponse:
-        allowed = {"panel.css", "panel.js"}
-        if asset_name not in allowed:
+        media_types = {
+            "panel.css": "text/css",
+            "panel.js": "application/javascript",
+            "brand.png": "image/png",
+        }
+        if asset_name not in media_types:
             raise HTTPException(status_code=404, detail="Asset not found")
         path = STATIC_DIR / asset_name
         if not path.is_file():
             raise HTTPException(status_code=404, detail="Asset not found")
-        media = "text/css" if asset_name.endswith(".css") else "application/javascript"
-        return FileResponse(path, media_type=media)
+        return FileResponse(path, media_type=media_types[asset_name])
 
     @api_app.get("/settings")
     def get_settings() -> dict[str, object]:

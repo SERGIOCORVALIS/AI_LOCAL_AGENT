@@ -4,6 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{{ADMIN_TITLE}}</title>
+  <link rel="icon" type="image/png" href="/admin/static/brand.png" />
+  <link rel="apple-touch-icon" href="/admin/static/brand.png" />
+  <meta name="theme-color" content="#0c0b0a" />
+  <meta property="og:title" content="Local AI Agent" />
+  <meta property="og:image" content="/admin/static/brand.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
@@ -13,7 +18,7 @@
   <div class="app">
     <aside class="rail" aria-label="Навигация">
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true"></div>
+        <img class="brand-mark" src="/admin/static/brand.png" width="40" height="40" alt="Local AI Agent" />
         <div>
           <div class="brand-name">Local AI Agent</div>
           <div class="brand-sub" id="rail-title">{{ADMIN_TITLE}}</div>
@@ -76,7 +81,8 @@
           </div>
         </header>
         <div class="chat-landing panel">
-          <h2>Диалоговое окно</h2>
+          <img class="brand-hero" src="/admin/static/brand.png" width="96" height="96" alt="Local AI Agent" />
+          <h2>Диалог с локальным ИИ</h2>
           <p class="muted">Откройте модальный чат — он доступен с любого экрана панели.</p>
           <div class="row" style="margin-top:16px">
             <button type="button" class="btn primary" id="btn-open-chat-page">Открыть диалог с ИИ</button>
@@ -177,9 +183,12 @@
     <div class="chat-dialog-backdrop" data-close-chat-dialog></div>
     <div class="chat-dialog" role="dialog" aria-modal="true" aria-labelledby="chat-dialog-title">
       <header class="chat-dialog-head">
-        <div>
-          <h2 id="chat-dialog-title">Диалог с ИИ</h2>
-          <p class="lede">Прямое общение с Local AI Agent</p>
+        <div class="chat-dialog-brand">
+          <img src="/admin/static/brand.png" width="44" height="44" alt="Local AI Agent" />
+          <div>
+            <h2 id="chat-dialog-title">Диалог с ИИ</h2>
+            <p class="lede">Локальный AI Agent · Ollama</p>
+          </div>
         </div>
         <div class="row">
           <button type="button" class="btn ghost" id="btn-clear-chat-dialog">Очистить</button>
@@ -203,7 +212,7 @@
   </div>
 
   <button type="button" class="chat-fab" id="btn-chat-fab" title="Диалог с ИИ" aria-label="Открыть диалог с ИИ">
-    <span class="chat-fab-label">ИИ</span>
+    <img src="/admin/static/brand.png" width="40" height="40" alt="" />
   </button>
 
   <div id="toast" class="toast hidden" role="status"></div>

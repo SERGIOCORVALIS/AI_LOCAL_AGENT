@@ -64,6 +64,7 @@ def test_metrics_and_admin_endpoints() -> None:
     admin_response = client.get("/admin")
     admin_css = client.get("/admin/static/panel.css")
     admin_js = client.get("/admin/static/panel.js")
+    admin_brand = client.get("/admin/static/brand.png")
     recent_tasks_response = client.get("/tasks/recent")
 
     assert metrics_response.status_code == 200
@@ -73,6 +74,7 @@ def test_metrics_and_admin_endpoints() -> None:
     assert "Настройки" in admin_response.text
     assert "Диалог с ИИ" in admin_response.text
     assert 'id="chat-dialog-root"' in admin_response.text
+    assert "/admin/static/brand.png" in admin_response.text
     assert 'data-view="overview"' in admin_response.text
     assert "Local AI Agent" in admin_response.text
     assert admin_css.status_code == 200
@@ -81,6 +83,8 @@ def test_metrics_and_admin_endpoints() -> None:
     assert admin_js.status_code == 200
     assert "admin-chat" in admin_js.text
     assert "openChatDialog" in admin_js.text
+    assert admin_brand.status_code == 200
+    assert admin_brand.headers["content-type"].startswith("image/png")
     assert recent_tasks_response.status_code == 200
     assert isinstance(recent_tasks_response.json(), list)
 

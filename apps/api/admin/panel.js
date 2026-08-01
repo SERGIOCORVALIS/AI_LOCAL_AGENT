@@ -248,8 +248,9 @@
     if (!messages.length) {
       stream.innerHTML = `
         <div class="chat-empty">
+          <img class="brand-hero" src="/admin/static/brand.png" width="88" height="88" alt="Local AI Agent" />
           <h2>Local AI Agent</h2>
-          <p class="muted">Спросите что угодно — цель уйдёт в orchestrator как Task.</p>
+          <p class="muted">Ваш локальный ИИ — спросите что угодно. Запрос уйдёт в orchestrator как Task.</p>
           <div class="suggestions">
             <button type="button" class="chip" data-prompt="Кто ты и что умеешь?">Кто ты?</button>
             <button type="button" class="chip" data-prompt="Проверь статус Ollama и моделей">Статус Ollama</button>

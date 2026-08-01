@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="../assets/brand/local-ai-agent.png" width="96" alt="Local AI Agent" />
+</p>
+
 # Production Runbook (Local Windows + Docker LAN)
 
 This project is a **local Windows appliance**. Production means hardened daily use on `127.0.0.1` / private LAN — not a public internet service.

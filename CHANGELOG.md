@@ -15,6 +15,7 @@ All notable product changes live here.
 
 ### Added
 
+- Official Local AI Agent brand mark (`assets/brand/local-ai-agent.png`) in admin UI, README, and docs
 - Luxury admin panel SPA (`/admin`) with left nav, agent chat dialog, stack views, settings dialogs
 - `GET/PUT /settings` persists allowlisted keys to `.env` (restart required; secrets masked)
 - Telegram UX: typing («печатает…»), ack on receive, progress edits, reactions, busy-chat guard

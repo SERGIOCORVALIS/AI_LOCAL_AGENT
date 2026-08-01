@@ -128,8 +128,9 @@ class TelegramBotService:
         command = text.strip().lower()
         if command in {"/start", "start"}:
             return (
-                "Local AI Agent online.\n"
-                "Пиши обычным текстом — отвечу через локальную модель Ollama.\n"
+                "Local AI Agent online — ваш локальный ИИ.\n"
+                "Пиши обычным текстом — отвечу через Ollama.\n"
+                "Пока думаю, сверху будет «печатает…».\n"
                 "Команды: /status /help"
             )
         if command in {"/help", "help"}:

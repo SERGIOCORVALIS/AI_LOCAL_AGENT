@@ -9,6 +9,10 @@
 [![Docker](https://img.shields.io/badge/Docker-Desktop-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 [![Guide](https://img.shields.io/badge/Status-Ready-22C55E?style=for-the-badge)](#-quick-path)
 
+<p align="center">
+  <img src="../assets/brand/local-ai-agent.png" width="120" alt="Local AI Agent" />
+</p>
+
 > 🚀 From zero to a running Local AI Agent with one-click launchers, healthchecks, backups, and a local admin panel.
 
 </div>
@@ -80,6 +84,7 @@ start-agent.cmd
    (e.g. from [@userinfobot](https://t.me/userinfobot)).
 4. Restart: `restart-agent.cmd` or `REBUT-DOKER.cmd`.
 5. Confirm `/status` in Telegram or `telegram.available=true` in `GET /status`.
+6. Optional avatar: [@BotFather](https://t.me/BotFather) → Edit Botpic → upload `assets/brand/local-ai-agent.png`.
 
 While the agent works you should see:
 - header status **«печатает…»**
