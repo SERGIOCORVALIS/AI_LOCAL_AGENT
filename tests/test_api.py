@@ -1,6 +1,7 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.main import app, create_app
@@ -103,7 +104,7 @@ def test_settings_get_masks_secrets() -> None:
     assert payload["applies_after_restart"] is True
 
 
-def test_settings_put_merges_env_file(tmp_path: Path, monkeypatch) -> None:
+def test_settings_put_merges_env_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     env_path = tmp_path / ".env"
     env_path.write_text(
         "# keep me\nLOCAL_AI_AGENT_APP_NAME=old-name\nLOCAL_AI_AGENT_ENV=dev\n",

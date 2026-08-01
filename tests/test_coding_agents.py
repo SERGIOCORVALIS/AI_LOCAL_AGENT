@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 from unittest.mock import MagicMock
 
 from packages.core import Action, ActionMode, Task
@@ -114,7 +116,7 @@ def test_invoke_success_and_missing_binary() -> None:
     assert "ollama launch claude" in (missing.error or "")
 
 
-def test_coding_agent_capability_with_mock_adapter(tmp_path) -> None:
+def test_coding_agent_capability_with_mock_adapter(tmp_path: Path) -> None:
     runner = MagicMock(
         return_value=SimpleNamespace(returncode=0, stdout="patched file", stderr="")
     )
@@ -209,7 +211,7 @@ def test_remote_readiness_and_invoke() -> None:
     }
 
     class _Resp:
-        def __init__(self, status_code: int, payload: dict) -> None:
+        def __init__(self, status_code: int, payload: dict[str, Any]) -> None:
             self.status_code = status_code
             self._payload = payload
             self.text = str(payload)
@@ -218,7 +220,7 @@ def test_remote_readiness_and_invoke() -> None:
             if self.status_code >= 400:
                 raise RuntimeError(f"HTTP {self.status_code}")
 
-        def json(self) -> dict:
+        def json(self) -> dict[str, Any]:
             return self._payload
 
     http = MagicMock()

@@ -63,7 +63,7 @@ class VisionAnalyzer:
         if find_spec("pytesseract") is None or find_spec("PIL") is None:
             return None
         try:
-            import pytesseract  # type: ignore[import-not-found]
+            import pytesseract
             from PIL import Image
         except Exception:
             return None

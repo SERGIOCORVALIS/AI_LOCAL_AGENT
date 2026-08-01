@@ -32,7 +32,7 @@ class SpeechToText:
         if find_spec("faster_whisper") is None:
             return None
         try:
-            from faster_whisper import WhisperModel  # type: ignore[import-untyped]
+            from faster_whisper import WhisperModel
         except Exception:
             return None
         try:

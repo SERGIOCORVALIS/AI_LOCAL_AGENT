@@ -79,6 +79,32 @@ exclude = [
   "^dist/",
 ]
 
+# Optional extras ([integrations]/[perception]) are not installed in CI ([dev] only).
+[[tool.mypy.overrides]]
+module = [
+  "aiogram",
+  "aiogram.*",
+  "playwright",
+  "playwright.*",
+  "faster_whisper",
+  "faster_whisper.*",
+  "PIL",
+  "PIL.*",
+  "pytesseract",
+  "pytesseract.*",
+  "watchdog",
+  "watchdog.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "services.integrations.telegram_bot"
+disable_error_code = ["untyped-decorator"]
+
+[[tool.mypy.overrides]]
+module = "services.integrations.watchdog_adapter"
+disable_error_code = ["no-untyped-call", "unused-ignore"]
+
 [tool.pytest.ini_options]
 addopts = "-q -m \"not integration\" --cov=apps --cov=packages --cov=services --cov-report=term-missing"
 testpaths = ["tests"]

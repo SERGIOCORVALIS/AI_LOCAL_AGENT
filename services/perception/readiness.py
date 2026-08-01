@@ -18,7 +18,7 @@ def ocr_available() -> bool:
     if find_spec("pytesseract") is None or find_spec("PIL") is None:
         return False
     try:
-        import pytesseract  # type: ignore[import-not-found]
+        import pytesseract
 
         # get_tesseract_version raises if binary is missing.
         pytesseract.get_tesseract_version()

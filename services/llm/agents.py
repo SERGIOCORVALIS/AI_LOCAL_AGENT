@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
-from typing import Any
+from typing import Any, cast
 
 from pydantic import BaseModel, Field
 
@@ -37,7 +37,7 @@ class AgentModelConfig(BaseModel):
 
     def slot_model(self, slot: AgentSlot | str) -> str:
         key = AgentSlot(slot)
-        return getattr(self, key.value)
+        return cast(str, getattr(self, key.value))
 
     def for_role(self, role: str) -> str:
         slot = ROLE_TO_SLOT.get(role, AgentSlot.PRIMARY)

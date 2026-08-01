@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -9,7 +10,7 @@ from apps.coding.main import create_app
 from services.integrations.coding_agents import CodingAgentsAdapter
 
 
-def test_coding_gateway_health_and_agents(tmp_path) -> None:
+def test_coding_gateway_health_and_agents(tmp_path: Path) -> None:
     which = MagicMock(side_effect=lambda name: f"/bin/{name}" if name != "claude" else None)
     adapter = CodingAgentsAdapter(
         enabled=True,
@@ -31,7 +32,7 @@ def test_coding_gateway_health_and_agents(tmp_path) -> None:
     assert body["agents"]["claude"]["installed"] is False
 
 
-def test_coding_gateway_run_with_fake_runner(tmp_path) -> None:
+def test_coding_gateway_run_with_fake_runner(tmp_path: Path) -> None:
     runner = MagicMock(
         return_value=SimpleNamespace(returncode=0, stdout="sidecar ran", stderr="")
     )
